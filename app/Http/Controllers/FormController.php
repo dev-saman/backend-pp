@@ -1,0 +1,228 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Form;
+use App\Models\FormSubmission;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+class FormController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Form::with('creator');
+
+        if ($request->search) {
+            $query->where('name', 'like', "%{$request->search}%");
+        }
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $forms = $query->latest()->paginate(20);
+
+        return view('forms.index', compact('forms'));
+    }
+
+    public function create()
+    {
+        return view('forms.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category'    => 'nullable|string|max:100',
+            'status'      => 'nullable|in:draft,active,archived',
+        ]);
+
+        $validated['created_by'] = Auth::id();
+        $validated['status']     = $validated['status'] ?? 'draft';
+        $validated['slug']       = Str::slug($validated['name']) . '-' . Str::random(6);
+        $validated['fields']     = [];
+
+        $form = Form::create($validated);
+
+        return redirect()->route('forms.builder', $form)
+            ->with('success', 'Form created! Start building your form below.');
+    }
+
+    public function show(Form $form)
+    {
+        $form->load(['creator', 'submissions']);
+        return view('forms.show', compact('form'));
+    }
+
+    public function builder(Form $form)
+    {
+        return view('forms.builder', compact('form'));
+    }
+
+    public function edit(Form $form)
+    {
+        return view('forms.edit', compact('form'));
+    }
+
+    public function update(Request $request, Form $form)
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category'    => 'nullable|string|max:100',
+            'status'      => 'nullable|in:draft,active,archived',
+        ]);
+
+        if (empty($form->slug)) {
+            $form->slug = Str::slug($validated['name']) . '-' . Str::random(6);
+        }
+
+        $form->update($validated);
+
+        return redirect()->route('forms.builder', $form)
+            ->with('success', 'Form settings saved.');
+    }
+
+    public function destroy(Form $form)
+    {
+        $form->delete();
+        return redirect()->route('forms.index')
+            ->with('success', 'Form deleted successfully.');
+    }
+
+    /**
+     * AJAX: Save the form builder schema (fields JSON) to the database
+     * Route: POST /forms/{form}/schema
+     */
+    public function saveSchema(Request $request, Form $form)
+    {
+        // schema can arrive as a JSON string (from builder AJAX) or as an array
+        $rawSchema = $request->input('schema');
+        if (is_string($rawSchema)) {
+            $decoded = json_decode($rawSchema, true);
+            $schema  = $decoded ?? [];
+        } else {
+            $schema = $rawSchema ?? [];
+        }
+
+        // Save the schema (rows structure) into the fields column
+        $form->fields = $schema;
+
+        // Optionally update name and description from builder
+        if ($request->has('name') && $request->name) {
+            $form->name = $request->name;
+        }
+        if ($request->has('description')) {
+            $form->description = $request->description;
+        }
+
+        if ($request->has('status') && $request->status) {
+            $form->status = $request->status;
+        }
+
+        // Ensure slug exists for active forms
+        if ($form->status === 'active' && empty($form->slug)) {
+            $form->slug = Str::slug($form->name) . '-' . Str::random(6);
+        }
+
+        $form->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Form schema saved successfully.',
+            'form'    => [
+                'id'          => $form->id,
+                'status'      => $form->status,
+                'slug'        => $form->slug,
+                'url'         => $form->slug ? url('/f/' . $form->slug) : null,
+                'fields_count' => is_array($form->fields) ? count($form->fields) : 0,
+            ],
+        ]);
+    }
+
+    /**
+     * AJAX: Publish a form (set status to active)
+     * Route: POST /forms/{form}/publish
+     */
+    public function publish(Form $form)
+    {
+        if (empty($form->slug)) {
+            $form->slug = Str::slug($form->name) . '-' . Str::random(6);
+        }
+        $form->status = 'active';
+        $form->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Form published successfully.',
+            'url'     => url('/f/' . $form->slug),
+        ]);
+    }
+
+    /**
+     * Public form page — accessible by patients via the form's slug URL
+     * Route: GET /f/{slug}
+     */
+    public function publicForm(string $slug)
+    {
+        $form = Form::where('slug', $slug)->where('status', 'active')->firstOrFail();
+        return view('forms.public', compact('form'));
+    }
+
+    /**
+     * Handle public form submission from patients
+     * Route: POST /f/{slug}/submit
+     */
+    public function submitPublicForm(Request $request, string $slug)
+    {
+        $form = Form::where('slug', $slug)->where('status', 'active')->firstOrFail();
+
+        $submittedData = $request->input('fields', []);
+
+        // Handle file uploads
+        if ($request->hasFile('fields')) {
+            foreach ($request->file('fields') as $fieldId => $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('form-uploads/' . $form->id, 'public');
+                    $submittedData[$fieldId] = $path;
+                }
+            }
+        }
+
+        FormSubmission::create([
+            'form_id'    => $form->id,
+            'patient_id' => null,
+            'data'       => $submittedData,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        $form->increment('submission_count');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Form submitted successfully. Thank you!',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Form submitted successfully. Thank you!');
+    }
+
+    /**
+     * Get the public URL for a form (for admin panel display)
+     */
+    public function getPublicUrl(Form $form)
+    {
+        if (empty($form->slug)) {
+            $form->slug = Str::slug($form->name) . '-' . Str::random(6);
+            $form->save();
+        }
+        $url = url('/f/' . $form->slug);
+        return response()->json(['status' => 'success', 'url' => $url]);
+    }
+}

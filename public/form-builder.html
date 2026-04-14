@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form Builder — AdvantageHCS Admin</title>
+<style>
+  /* ===================== RESET & BASE ===================== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-dark: #0a0a0f;
+    --bg-panel: #111118;
+    --bg-card: #16161f;
+    --bg-hover: #1e1e2a;
+    --bg-active: #1a1a28;
+    --border: #2a2a3a;
+    --border-light: #333348;
+    --accent: #6366f1;
+    --accent-hover: #4f52d8;
+    --accent-light: rgba(99,102,241,0.12);
+    --accent-glow: rgba(99,102,241,0.3);
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text-primary: #f0f0f8;
+    --text-secondary: #9090b0;
+    --text-muted: #5a5a7a;
+    --canvas-bg: #0d0d14;
+    --field-bg: #1a1a28;
+    --field-border: #2e2e45;
+    --field-hover: #22223a;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+    --transition: 0.15s ease;
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* ===================== TOP BAR ===================== */
+  .topbar {
+    height: 52px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .topbar-logo {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 14px; color: var(--text-primary);
+    text-decoration: none;
+  }
+  .topbar-logo span {
+    width: 28px; height: 28px; background: var(--accent);
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff;
+  }
+  .topbar-divider { width: 1px; height: 20px; background: var(--border); }
+  .form-title-input {
+    background: transparent; border: none; outline: none;
+    color: var(--text-primary); font-size: 14px; font-weight: 500;
+    width: 220px; padding: 4px 8px; border-radius: 6px;
+    transition: background var(--transition);
+  }
+  .form-title-input:hover, .form-title-input:focus { background: var(--bg-hover); }
+  .topbar-center { display: flex; align-items: center; gap: 4px; }
+  .tab-btn {
+    padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 500; transition: all var(--transition);
+    background: transparent; color: var(--text-secondary);
+  }
+  .tab-btn.active { background: var(--accent); color: #fff; }
+  .tab-btn:hover:not(.active) { background: var(--bg-hover); color: var(--text-primary); }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    padding: 7px 16px; border-radius: 7px; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 600; transition: all var(--transition);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { background: #16a34a; }
+  .status-badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3);
+  }
+
+  /* ===================== MAIN LAYOUT ===================== */
+  .builder-layout {
+    display: flex;
+    height: calc(100vh - 52px);
+    margin-top: 52px;
+  }
+
+  /* ===================== LEFT SIDEBAR — FIELD PALETTE ===================== */
+  .palette {
+    width: 240px;
+    min-width: 240px;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .palette-header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .palette-search {
+    width: 100%; padding: 7px 10px 7px 30px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-primary); font-size: 12px; outline: none;
+    position: relative;
+  }
+  .palette-search:focus { border-color: var(--accent); }
+  .search-wrap { position: relative; }
+  .search-icon {
+    position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); pointer-events: none;
+  }
+  .palette-body { flex: 1; overflow-y: auto; padding: 10px 10px; }
+  .palette-body::-webkit-scrollbar { width: 4px; }
+  .palette-body::-webkit-scrollbar-track { background: transparent; }
+  .palette-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .palette-section { margin-bottom: 16px; }
+  .palette-section-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-muted); padding: 0 4px 6px;
+  }
+  .palette-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .palette-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; padding: 10px 6px; border-radius: 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    cursor: grab; transition: all var(--transition);
+    text-align: center; user-select: none;
+  }
+  .palette-item:hover {
+    background: var(--accent-light); border-color: var(--accent);
+    transform: translateY(-1px); box-shadow: 0 4px 12px var(--accent-glow);
+  }
+  .palette-item:active { cursor: grabbing; transform: scale(0.96); }
+  .palette-item.dragging-source { opacity: 0.4; }
+  .palette-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--accent-light); display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .palette-label { font-size: 10px; color: var(--text-secondary); font-weight: 500; line-height: 1.2; }
+  .palette-item-wide {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border);
+    cursor: grab; transition: all var(--transition); user-select: none;
+  }
+  .palette-item-wide:hover {
+    background: var(--accent-light); border-color: var(--accent);
+  }
+  .palette-item-wide .palette-icon { width: 24px; height: 24px; font-size: 12px; }
+  .palette-item-wide .palette-label { font-size: 11px; color: var(--text-secondary); }
+
+  /* ===================== CENTER CANVAS ===================== */
+  .canvas-wrap {
+    flex: 1;
+    background: var(--canvas-bg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 24px 80px;
+    position: relative;
+  }
+  .canvas-wrap::-webkit-scrollbar { width: 6px; }
+  .canvas-wrap::-webkit-scrollbar-track { background: transparent; }
+  .canvas-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .canvas-toolbar {
+    width: 100%; max-width: 780px;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .canvas-toolbar-label { font-size: 11px; color: var(--text-muted); margin-right: 4px; }
+  .layout-btn {
+    padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text-secondary); font-size: 11px;
+    cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 4px;
+  }
+  .layout-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .canvas-toolbar-sep { flex: 1; }
+  .zoom-controls { display: flex; align-items: center; gap: 4px; }
+  .zoom-btn {
+    width: 26px; height: 26px; border-radius: 5px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    transition: all var(--transition);
+  }
+  .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .zoom-label { font-size: 11px; color: var(--text-muted); min-width: 36px; text-align: center; }
+  .canvas-form {
+    width: 100%; max-width: 780px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    min-height: 500px;
+    padding: 24px;
+    position: relative;
+  }
+  .canvas-form-header {
+    margin-bottom: 20px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .canvas-form-title {
+    font-size: 20px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .canvas-form-desc { font-size: 12px; color: var(--text-muted); }
+  .canvas-drop-zone {
+    min-height: 200px;
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    transition: all var(--transition);
+    padding: 40px 20px;
+  }
+  .canvas-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .canvas-drop-zone.has-fields {
+    border: none; padding: 0; min-height: unset;
+    display: block; background: transparent;
+  }
+  .drop-hint { color: var(--text-muted); font-size: 13px; text-align: center; }
+  .drop-hint-icon { font-size: 32px; margin-bottom: 4px; }
+
+  /* ===================== FORM ROWS & COLUMNS ===================== */
+  .form-row {
+    display: flex; gap: 12px; margin-bottom: 12px;
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 4px;
+    transition: border-color var(--transition);
+  }
+  .form-row:hover { border-color: var(--border); }
+  .form-row.selected { border-color: var(--accent); background: rgba(99,102,241,0.04); }
+  .form-row-actions {
+    position: absolute; top: -14px; right: 4px;
+    display: none; gap: 3px; z-index: 10;
+  }
+  .form-row:hover .form-row-actions,
+  .form-row.selected .form-row-actions { display: flex; }
+  .row-action-btn {
+    padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--bg-panel); color: var(--text-muted); font-size: 10px;
+    cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 3px;
+  }
+  .row-action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .row-action-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); }
+  .form-col {
+    flex: 1; min-width: 0;
+    border: 1px dashed transparent;
+    border-radius: 6px;
+    padding: 4px;
+    transition: all var(--transition);
+    position: relative;
+    min-height: 60px;
+  }
+  .form-col.drag-over-col {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .form-col.empty-col {
+    border-color: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 11px;
+  }
+
+  /* ===================== FIELD ELEMENT ===================== */
+  .field-el {
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+    margin-bottom: 4px;
+    user-select: none;
+  }
+  .field-el:hover { border-color: var(--border-light); background: var(--field-hover); }
+  .field-el.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+  .field-el.dragging { opacity: 0.3; }
+  .field-el-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .field-drag-handle {
+    color: var(--text-muted); cursor: grab; font-size: 14px; line-height: 1;
+    padding: 2px; border-radius: 3px; transition: color var(--transition);
+  }
+  .field-drag-handle:hover { color: var(--accent); }
+  .field-drag-handle:active { cursor: grabbing; }
+  .field-label-text {
+    font-size: 12px; font-weight: 600; color: var(--text-primary); flex: 1;
+  }
+  .field-required-star { color: var(--red); margin-left: 2px; }
+  .field-type-badge {
+    font-size: 9px; padding: 2px 6px; border-radius: 10px;
+    background: var(--accent-light); color: var(--accent); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .field-actions {
+    display: none; gap: 3px;
+  }
+  .field-el:hover .field-actions,
+  .field-el.selected .field-actions { display: flex; }
+  .field-action-btn {
+    width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--bg-panel); color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    transition: all var(--transition);
+  }
+  .field-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .field-action-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); }
+  .field-preview { pointer-events: none; }
+  .field-preview input,
+  .field-preview textarea,
+  .field-preview select {
+    width: 100%; padding: 7px 10px;
+    background: var(--bg-dark); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text-secondary); font-size: 12px; outline: none;
+    font-family: inherit;
+  }
+  .field-preview textarea { resize: none; height: 64px; }
+  .field-preview select { appearance: none; }
+  .field-preview .field-help { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+  .field-preview .radio-group,
+  .field-preview .check-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-preview .radio-opt,
+  .field-preview .check-opt {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .field-preview .radio-opt input,
+  .field-preview .check-opt input { width: auto; }
+  .field-preview .sig-box {
+    height: 70px; border: 1px dashed var(--border);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 11px;
+  }
+  .field-preview .upload-box {
+    border: 1px dashed var(--border); border-radius: 5px;
+    padding: 14px; text-align: center; color: var(--text-muted); font-size: 11px;
+  }
+  .field-preview .divider-line { border-top: 1px solid var(--border); margin: 4px 0; }
+  .field-preview .header-text { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .field-preview .para-text { font-size: 12px; color: var(--text-secondary); }
+  .field-preview .rating-stars { display: flex; gap: 4px; font-size: 20px; color: var(--yellow); }
+
+  /* Drop indicator line */
+  .drop-indicator {
+    height: 3px; background: var(--accent);
+    border-radius: 2px; margin: 4px 0;
+    display: none;
+  }
+  .drop-indicator.visible { display: block; }
+
+  /* ===================== RIGHT PANEL — PROPERTIES ===================== */
+  .properties {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .properties-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .properties-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+  .properties-subtitle { font-size: 10px; color: var(--text-muted); }
+  .properties-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+  .properties-body::-webkit-scrollbar { width: 4px; }
+  .properties-body::-webkit-scrollbar-track { background: transparent; }
+  .properties-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .prop-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 200px; gap: 10px; color: var(--text-muted); text-align: center;
+  }
+  .prop-empty-icon { font-size: 32px; }
+  .prop-empty-text { font-size: 12px; }
+  .prop-tabs {
+    display: flex; gap: 2px; margin-bottom: 16px;
+    background: var(--bg-card); border-radius: 7px; padding: 3px;
+  }
+  .prop-tab {
+    flex: 1; padding: 5px 8px; border-radius: 5px; border: none;
+    background: transparent; color: var(--text-muted); font-size: 11px; font-weight: 500;
+    cursor: pointer; transition: all var(--transition); text-align: center;
+  }
+  .prop-tab.active { background: var(--accent); color: #fff; }
+  .prop-group { margin-bottom: 18px; }
+  .prop-group-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .prop-field { margin-bottom: 12px; }
+  .prop-label {
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    display: block; margin-bottom: 5px;
+  }
+  .prop-input {
+    width: 100%; padding: 7px 10px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-primary); font-size: 12px; outline: none;
+    transition: border-color var(--transition); font-family: inherit;
+  }
+  .prop-input:focus { border-color: var(--accent); }
+  .prop-textarea {
+    width: 100%; padding: 7px 10px; height: 70px; resize: none;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-primary); font-size: 12px; outline: none;
+    transition: border-color var(--transition); font-family: inherit;
+  }
+  .prop-textarea:focus { border-color: var(--accent); }
+  .prop-select {
+    width: 100%; padding: 7px 10px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-primary); font-size: 12px; outline: none;
+    appearance: none; cursor: pointer;
+  }
+  .prop-select:focus { border-color: var(--accent); }
+  .prop-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .prop-toggle-label { font-size: 12px; color: var(--text-secondary); }
+  .toggle {
+    width: 36px; height: 20px; border-radius: 10px;
+    background: var(--border); cursor: pointer;
+    position: relative; transition: background var(--transition); flex-shrink: 0;
+    border: none; outline: none;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; transition: left var(--transition);
+  }
+  .toggle.on::after { left: 18px; }
+  .prop-row { display: flex; gap: 8px; }
+  .prop-row .prop-field { flex: 1; }
+  .options-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+  .option-item {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .option-item input {
+    flex: 1; padding: 5px 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text-primary); font-size: 11px; outline: none;
+  }
+  .option-item input:focus { border-color: var(--accent); }
+  .option-del-btn {
+    width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+    transition: all var(--transition); flex-shrink: 0;
+  }
+  .option-del-btn:hover { border-color: var(--red); color: var(--red); }
+  .add-option-btn {
+    width: 100%; padding: 6px; border-radius: 6px;
+    border: 1px dashed var(--border); background: transparent;
+    color: var(--text-muted); font-size: 11px; cursor: pointer;
+    transition: all var(--transition); display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .add-option-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .col-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .col-opt {
+    padding: 6px 4px; border-radius: 5px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text-muted); font-size: 10px;
+    cursor: pointer; text-align: center; transition: all var(--transition);
+  }
+  .col-opt:hover { border-color: var(--accent); color: var(--accent); }
+  .col-opt.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .prop-color-row { display: flex; align-items: center; gap: 8px; }
+  .prop-color { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; }
+  .prop-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+  }
+  .prop-footer .btn { flex: 1; justify-content: center; }
+
+  /* ===================== PREVIEW MODE ===================== */
+  .preview-overlay {
+    display: none;
+    position: fixed; inset: 52px 0 0 0;
+    background: var(--canvas-bg);
+    z-index: 50;
+    overflow-y: auto;
+    padding: 40px 24px;
+  }
+  .preview-overlay.visible { display: flex; justify-content: center; }
+  .preview-form {
+    width: 100%; max-width: 680px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+  }
+  .preview-form h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .preview-form p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .preview-field { margin-bottom: 18px; }
+  .preview-label { font-size: 13px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px; }
+  .preview-input {
+    width: 100%; padding: 9px 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 7px; color: var(--text-primary); font-size: 13px; outline: none;
+    transition: border-color var(--transition); font-family: inherit;
+  }
+  .preview-input:focus { border-color: var(--accent); }
+  .preview-textarea {
+    width: 100%; padding: 9px 12px; height: 90px; resize: vertical;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 7px; color: var(--text-primary); font-size: 13px; outline: none; font-family: inherit;
+  }
+  .preview-select {
+    width: 100%; padding: 9px 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 7px; color: var(--text-primary); font-size: 13px; outline: none; appearance: none;
+  }
+  .preview-submit {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; margin-top: 8px; transition: background var(--transition);
+  }
+  .preview-submit:hover { background: var(--accent-hover); }
+  .preview-row { display: flex; gap: 16px; }
+  .preview-row .preview-field { flex: 1; }
+
+  /* ===================== CONTEXT MENU ===================== */
+  .ctx-menu {
+    position: fixed; z-index: 200;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px; min-width: 160px;
+    box-shadow: var(--shadow); display: none;
+  }
+  .ctx-menu.visible { display: block; }
+  .ctx-item {
+    padding: 7px 12px; border-radius: 5px; cursor: pointer;
+    font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 8px;
+    transition: all var(--transition);
+  }
+  .ctx-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .ctx-item.danger:hover { background: rgba(239,68,68,0.1); color: var(--red); }
+  .ctx-sep { height: 1px; background: var(--border); margin: 3px 0; }
+
+  /* ===================== TOAST ===================== */
+  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    background: var(--bg-panel); border: 1px solid var(--border);
+    color: var(--text-primary); box-shadow: var(--shadow);
+    animation: slideIn 0.2s ease; display: flex; align-items: center; gap: 8px;
+  }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--red); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ===================== SCROLLBAR GLOBAL ===================== */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 900px) {
+    .palette { width: 200px; min-width: 200px; }
+    .properties { width: 240px; min-width: 240px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="#" class="topbar-logo">
+      <span>A</span> AdvantageHCS
+    </a>
+    <div class="topbar-divider"></div>
+    <input class="form-title-input" id="formTitleInput" value="Patient Intake Form" type="text" placeholder="Form name...">
+    <span class="status-badge" id="formStatusBadge">Draft</span>
+  </div>
+  <div class="topbar-center">
+    <button class="tab-btn active" id="tabBuild" onclick="switchTab('build')">✏️ Build</button>
+    <button class="tab-btn" id="tabPreview" onclick="switchTab('preview')">👁 Preview</button>
+    <button class="tab-btn" id="tabSettings" onclick="switchTab('settings')">⚙️ Settings</button>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost" onclick="clearCanvas()">🗑 Clear</button>
+    <button class="btn btn-ghost" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn btn-primary" onclick="saveForm()">💾 Save</button>
+    <button class="btn btn-success" onclick="publishForm()">🚀 Publish</button>
+  </div>
+</div>
+
+<!-- MAIN BUILDER LAYOUT -->
+<div class="builder-layout" id="builderLayout">
+
+  <!-- LEFT: FIELD PALETTE -->
+  <div class="palette">
+    <div class="palette-header">
+      <div class="search-wrap">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="palette-search" id="paletteSearch" placeholder="Search fields..." oninput="filterPalette(this.value)">
+      </div>
+    </div>
+    <div class="palette-body" id="paletteBody">
+
+      <!-- Basic Fields -->
+      <div class="palette-section" data-section="basic">
+        <div class="palette-section-title">Basic Fields</div>
+        <div class="palette-grid">
+          <div class="palette-item" draggable="true" data-type="text" data-label="Text Input" title="Single line text">
+            <div class="palette-icon">📝</div>
+            <div class="palette-label">Text Input</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="email" data-label="Email" title="Email address field">
+            <div class="palette-icon">📧</div>
+            <div class="palette-label">Email</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="phone" data-label="Phone" title="Phone number field">
+            <div class="palette-icon">📞</div>
+            <div class="palette-label">Phone</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="number" data-label="Number" title="Numeric input">
+            <div class="palette-icon">#️⃣</div>
+            <div class="palette-label">Number</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="date" data-label="Date" title="Date picker">
+            <div class="palette-icon">📅</div>
+            <div class="palette-label">Date</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="time" data-label="Time" title="Time picker">
+            <div class="palette-icon">🕐</div>
+            <div class="palette-label">Time</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="textarea" data-label="Text Area" title="Multi-line text">
+            <div class="palette-icon">📄</div>
+            <div class="palette-label">Text Area</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="password" data-label="Password" title="Password field">
+            <div class="palette-icon">🔒</div>
+            <div class="palette-label">Password</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Choice Fields -->
+      <div class="palette-section" data-section="choice">
+        <div class="palette-section-title">Choice Fields</div>
+        <div class="palette-grid">
+          <div class="palette-item" draggable="true" data-type="dropdown" data-label="Dropdown" title="Select dropdown">
+            <div class="palette-icon">🔽</div>
+            <div class="palette-label">Dropdown</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="radio" data-label="Radio" title="Single choice">
+            <div class="palette-icon">🔘</div>
+            <div class="palette-label">Radio</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="checkbox" data-label="Checkbox" title="Multiple choice">
+            <div class="palette-icon">☑️</div>
+            <div class="palette-label">Checkbox</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="toggle" data-label="Toggle" title="Yes/No toggle">
+            <div class="palette-icon">🔄</div>
+            <div class="palette-label">Toggle</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="rating" data-label="Rating" title="Star rating">
+            <div class="palette-icon">⭐</div>
+            <div class="palette-label">Rating</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="scale" data-label="Scale" title="1-10 scale">
+            <div class="palette-icon">📊</div>
+            <div class="palette-label">Scale</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Fields -->
+      <div class="palette-section" data-section="advanced">
+        <div class="palette-section-title">Advanced Fields</div>
+        <div class="palette-grid">
+          <div class="palette-item" draggable="true" data-type="signature" data-label="Signature" title="Digital signature">
+            <div class="palette-icon">✍️</div>
+            <div class="palette-label">Signature</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="file" data-label="File Upload" title="File upload">
+            <div class="palette-icon">📎</div>
+            <div class="palette-label">File Upload</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="address" data-label="Address" title="Full address block">
+            <div class="palette-icon">📍</div>
+            <div class="palette-label">Address</div>
+          </div>
+          <div class="palette-item" draggable="true" data-type="name" data-label="Full Name" title="First + Last name">
+            <div class="palette-icon">👤</div>
+            <div class="palette-label">Full Name</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout Elements -->
+      <div class="palette-section" data-section="layout">
+        <div class="palette-section-title">Layout & Content</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div class="palette-item-wide" draggable="true" data-type="header" data-label="Header">
+            <div class="palette-icon">🔤</div>
+            <div class="palette-label">Section Header</div>
+          </div>
+          <div class="palette-item-wide" draggable="true" data-type="paragraph" data-label="Paragraph">
+            <div class="palette-icon">📃</div>
+            <div class="palette-label">Paragraph Text</div>
+          </div>
+          <div class="palette-item-wide" draggable="true" data-type="divider" data-label="Divider">
+            <div class="palette-icon">➖</div>
+            <div class="palette-label">Divider Line</div>
+          </div>
+          <div class="palette-item-wide" draggable="true" data-type="image" data-label="Image">
+            <div class="palette-icon">🖼</div>
+            <div class="palette-label">Image / Logo</div>
+          </div>
+          <div class="palette-item-wide" draggable="true" data-type="submit" data-label="Submit Button">
+            <div class="palette-icon">🚀</div>
+            <div class="palette-label">Submit Button</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER: CANVAS -->
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="canvas-toolbar">
+      <span class="canvas-toolbar-label">Add row:</span>
+      <button class="layout-btn" onclick="addRow(1)" title="Full width">
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="0" width="14" height="10" rx="2" fill="currentColor"/></svg> 1 Col
+      </button>
+      <button class="layout-btn" onclick="addRow(2)" title="Two columns">
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="0" width="6" height="10" rx="2" fill="currentColor"/><rect x="8" y="0" width="6" height="10" rx="2" fill="currentColor"/></svg> 2 Col
+      </button>
+      <button class="layout-btn" onclick="addRow(3)" title="Three columns">
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="0" width="4" height="10" rx="2" fill="currentColor"/><rect x="5" y="0" width="4" height="10" rx="2" fill="currentColor"/><rect x="10" y="0" width="4" height="10" rx="2" fill="currentColor"/></svg> 3 Col
+      </button>
+      <button class="layout-btn" onclick="addRow(4)" title="Four columns">
+        <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="0" width="2.5" height="10" rx="1" fill="currentColor"/><rect x="3.8" y="0" width="2.5" height="10" rx="1" fill="currentColor"/><rect x="7.6" y="0" width="2.5" height="10" rx="1" fill="currentColor"/><rect x="11.5" y="0" width="2.5" height="10" rx="1" fill="currentColor"/></svg> 4 Col
+      </button>
+      <div class="canvas-toolbar-sep"></div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="changeZoom(-10)">−</button>
+        <span class="zoom-label" id="zoomLabel">100%</span>
+        <button class="zoom-btn" onclick="changeZoom(10)">+</button>
+      </div>
+    </div>
+
+    <div class="canvas-form" id="canvasForm">
+      <div class="canvas-form-header">
+        <div class="canvas-form-title" id="canvasFormTitle">Patient Intake Form</div>
+        <div class="canvas-form-desc" id="canvasFormDesc">Please fill out all required fields below</div>
+      </div>
+      <div class="canvas-drop-zone" id="dropZone">
+        <div class="drop-hint">
+          <div class="drop-hint-icon">⬇️</div>
+          <div>Drag fields here to start building your form</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--text-muted)">Or use the row buttons above to add layout rows</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: PROPERTIES PANEL -->
+  <div class="properties" id="propertiesPanel">
+    <div class="properties-header">
+      <div>
+        <div class="properties-title" id="propPanelTitle">Properties</div>
+        <div class="properties-subtitle" id="propPanelSubtitle">Select a field to edit</div>
+      </div>
+    </div>
+    <div class="properties-body" id="propertiesBody">
+      <div class="prop-empty" id="propEmpty">
+        <div class="prop-empty-icon">🖱️</div>
+        <div class="prop-empty-text">Click any field on the canvas to edit its properties</div>
+      </div>
+      <div id="propContent" style="display:none;"></div>
+    </div>
+    <div class="prop-footer" id="propFooter" style="display:none;">
+      <button class="btn btn-ghost" onclick="duplicateSelected()" style="font-size:11px;">⧉ Duplicate</button>
+      <button class="btn" style="background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);font-size:11px;" onclick="deleteSelected()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW OVERLAY -->
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-form" id="previewForm">
+    <h2 id="previewTitle">Patient Intake Form</h2>
+    <p id="previewDesc">Please fill out all required fields below</p>
+    <div id="previewFields"></div>
+    <button class="preview-submit">Submit Form</button>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="ctxDuplicate()">⧉ Duplicate Field</div>
+  <div class="ctx-item" onclick="ctxMoveUp()">⬆ Move Up</div>
+  <div class="ctx-item" onclick="ctxMoveDown()">⬇ Move Down</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxCopyStyle()">🎨 Copy Style</div>
+  <div class="ctx-item" onclick="ctxPasteStyle()">📋 Paste Style</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxDelete()">🗑 Delete Field</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===================== STATE =====================
+let formData = {
+  title: 'Patient Intake Form',
+  description: 'Please fill out all required fields below',
+  status: 'draft',
+  rows: []
+};
+
+let selectedFieldId = null;
+let selectedRowId = null;
+let selectedColIdx = null;
+let dragSourceType = null; // 'palette' or 'canvas'
+let dragSourceRowId = null;
+let dragSourceColIdx = null;
+let dragSourceFieldId = null;
+let ctxTargetFieldId = null;
+let zoom = 100;
+let fieldCounter = 0;
+let copiedStyle = null;
+
+// ===================== FIELD DEFINITIONS =====================
+const FIELD_DEFS = {
+  text:      { icon: '📝', label: 'Text Input',    hasOptions: false, hasPlaceholder: true },
+  email:     { icon: '📧', label: 'Email',         hasOptions: false, hasPlaceholder: true },
+  phone:     { icon: '📞', label: 'Phone',         hasOptions: false, hasPlaceholder: true },
+  number:    { icon: '#️⃣', label: 'Number',        hasOptions: false, hasPlaceholder: true },
+  date:      { icon: '📅', label: 'Date',          hasOptions: false, hasPlaceholder: false },
+  time:      { icon: '🕐', label: 'Time',          hasOptions: false, hasPlaceholder: false },
+  textarea:  { icon: '📄', label: 'Text Area',     hasOptions: false, hasPlaceholder: true },
+  password:  { icon: '🔒', label: 'Password',      hasOptions: false, hasPlaceholder: true },
+  dropdown:  { icon: '🔽', label: 'Dropdown',      hasOptions: true,  hasPlaceholder: true },
+  radio:     { icon: '🔘', label: 'Radio',         hasOptions: true,  hasPlaceholder: false },
+  checkbox:  { icon: '☑️', label: 'Checkbox',      hasOptions: true,  hasPlaceholder: false },
+  toggle:    { icon: '🔄', label: 'Toggle',        hasOptions: false, hasPlaceholder: false },
+  rating:    { icon: '⭐', label: 'Rating',        hasOptions: false, hasPlaceholder: false },
+  scale:     { icon: '📊', label: 'Scale',         hasOptions: false, hasPlaceholder: false },
+  signature: { icon: '✍️', label: 'Signature',     hasOptions: false, hasPlaceholder: false },
+  file:      { icon: '📎', label: 'File Upload',   hasOptions: false, hasPlaceholder: false },
+  address:   { icon: '📍', label: 'Address',       hasOptions: false, hasPlaceholder: false },
+  name:      { icon: '👤', label: 'Full Name',     hasOptions: false, hasPlaceholder: false },
+  header:    { icon: '🔤', label: 'Header',        hasOptions: false, hasPlaceholder: false },
+  paragraph: { icon: '📃', label: 'Paragraph',     hasOptions: false, hasPlaceholder: false },
+  divider:   { icon: '➖', label: 'Divider',       hasOptions: false, hasPlaceholder: false },
+  image:     { icon: '🖼', label: 'Image',         hasOptions: false, hasPlaceholder: false },
+  submit:    { icon: '🚀', label: 'Submit Button', hasOptions: false, hasPlaceholder: false },
+};
+
+function createField(type) {
+  fieldCounter++;
+  const def = FIELD_DEFS[type] || { icon: '📝', label: type };
+  return {
+    id: 'f' + fieldCounter,
+    type,
+    label: def.label,
+    placeholder: def.hasPlaceholder ? 'Enter ' + def.label.toLowerCase() + '...' : '',
+    required: false,
+    helpText: '',
+    width: '100%',
+    cssClass: '',
+    options: def.hasOptions ? ['Option 1', 'Option 2', 'Option 3'] : [],
+    content: type === 'header' ? 'Section Title' : (type === 'paragraph' ? 'Add your paragraph text here...' : ''),
+    buttonText: type === 'submit' ? 'Submit Form' : '',
+    style: { bold: false, italic: false, fontSize: '14', color: '', bgColor: '' }
+  };
+}
+
+// ===================== RENDER =====================
+function render() {
+  const dz = document.getElementById('dropZone');
+  if (formData.rows.length === 0) {
+    dz.className = 'canvas-drop-zone';
+    dz.innerHTML = `<div class="drop-hint"><div class="drop-hint-icon">⬇️</div><div>Drag fields here to start building your form</div><div style="font-size:11px;margin-top:4px;color:var(--text-muted)">Or use the row buttons above to add layout rows</div></div>`;
+    setupDropZone(dz);
+    return;
+  }
+  dz.className = 'canvas-drop-zone has-fields';
+  dz.innerHTML = '';
+  formData.rows.forEach(row => {
+    dz.appendChild(renderRow(row));
+  });
+  // Update canvas title
+  document.getElementById('canvasFormTitle').textContent = formData.title;
+  document.getElementById('canvasFormDesc').textContent = formData.description;
+}
+
+function renderRow(row) {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'form-row' + (selectedRowId === row.id && selectedFieldId === null ? ' selected' : '');
+  rowEl.dataset.rowId = row.id;
+
+  // Row actions
+  const actions = document.createElement('div');
+  actions.className = 'form-row-actions';
+  actions.innerHTML = `
+    <button class="row-action-btn" onclick="addColToRow('${row.id}')" title="Add column">+ Col</button>
+    <button class="row-action-btn" onclick="removeColFromRow('${row.id}')" title="Remove column">- Col</button>
+    <button class="row-action-btn" onclick="moveRowUp('${row.id}')" title="Move up">↑</button>
+    <button class="row-action-btn" onclick="moveRowDown('${row.id}')" title="Move down">↓</button>
+    <button class="row-action-btn danger" onclick="deleteRow('${row.id}')" title="Delete row">✕</button>
+  `;
+  rowEl.appendChild(actions);
+
+  // Columns
+  row.cols.forEach((col, colIdx) => {
+    const colEl = document.createElement('div');
+    colEl.className = 'form-col' + (col.fields.length === 0 ? ' empty-col' : '');
+    colEl.dataset.rowId = row.id;
+    colEl.dataset.colIdx = colIdx;
+
+    if (col.fields.length === 0) {
+      colEl.innerHTML = `<span>Drop field here</span>`;
+    } else {
+      col.fields.forEach(field => {
+        colEl.appendChild(renderField(field, row.id, colIdx));
+      });
+    }
+
+    setupColDrop(colEl, row.id, colIdx);
+    rowEl.appendChild(colEl);
+  });
+
+  return rowEl;
+}
+
+function renderField(field, rowId, colIdx) {
+  const def = FIELD_DEFS[field.type] || {};
+  const el = document.createElement('div');
+  el.className = 'field-el' + (selectedFieldId === field.id ? ' selected' : '');
+  el.dataset.fieldId = field.id;
+  el.dataset.rowId = rowId;
+  el.dataset.colIdx = colIdx;
+  el.draggable = true;
+
+  el.innerHTML = `
+    <div class="field-el-header">
+      <span class="field-drag-handle" title="Drag to reorder">⠿</span>
+      <span class="field-label-text">${field.label}${field.required ? '<span class="field-required-star">*</span>' : ''}</span>
+      <span class="field-type-badge">${def.icon || ''} ${field.type}</span>
+      <div class="field-actions">
+        <button class="field-action-btn" onclick="duplicateField('${field.id}','${rowId}',${colIdx})" title="Duplicate">⧉</button>
+        <button class="field-action-btn danger" onclick="deleteField('${field.id}','${rowId}',${colIdx})" title="Delete">✕</button>
+      </div>
+    </div>
+    <div class="field-preview">${renderFieldPreview(field)}</div>
+  `;
+
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectField(field.id, rowId, colIdx);
+  });
+  el.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    ctxTargetFieldId = field.id;
+    showCtxMenu(e.clientX, e.clientY);
+  });
+  el.addEventListener('dragstart', (e) => {
+    dragSourceType = 'canvas';
+    dragSourceRowId = rowId;
+    dragSourceColIdx = colIdx;
+    dragSourceFieldId = field.id;
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => {
+    el.classList.remove('dragging');
+  });
+
+  return el;
+}
+
+function renderFieldPreview(field) {
+  switch(field.type) {
+    case 'text':
+    case 'email':
+    case 'phone':
+    case 'password':
+      return `<input type="${field.type === 'phone' ? 'tel' : field.type}" placeholder="${field.placeholder}" disabled>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'number':
+      return `<input type="number" placeholder="${field.placeholder}" disabled>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'date':
+      return `<input type="date" disabled>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'time':
+      return `<input type="time" disabled>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'textarea':
+      return `<textarea placeholder="${field.placeholder}" disabled></textarea>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'dropdown':
+      return `<select disabled><option>${field.placeholder || 'Select an option...'}</option>${(field.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'radio':
+      return `<div class="radio-group">${(field.options||[]).map(o=>`<label class="radio-opt"><input type="radio" disabled> ${o}</label>`).join('')}</div>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'checkbox':
+      return `<div class="check-group">${(field.options||[]).map(o=>`<label class="check-opt"><input type="checkbox" disabled> ${o}</label>`).join('')}</div>
+              ${field.helpText ? `<div class="field-help">${field.helpText}</div>` : ''}`;
+    case 'toggle':
+      return `<div style="display:flex;align-items:center;gap:8px;"><div style="width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;"><div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;"></div></div><span style="font-size:11px;color:var(--text-muted)">Toggle</span></div>`;
+    case 'rating':
+      return `<div class="rating-stars">★★★★★</div>`;
+    case 'scale':
+      return `<div style="display:flex;gap:4px;">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<div style="width:24px;height:24px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-muted);">${n}</div>`).join('')}</div>`;
+    case 'signature':
+      return `<div class="sig-box">✍️ Sign here</div>`;
+    case 'file':
+      return `<div class="upload-box">📎 Click to upload or drag & drop<br><span style="font-size:10px;">PDF, JPG, PNG up to 10MB</span></div>`;
+    case 'address':
+      return `<div style="display:flex;flex-direction:column;gap:6px;">
+        <input type="text" placeholder="Street Address" disabled>
+        <div style="display:flex;gap:6px;">
+          <input type="text" placeholder="City" disabled style="flex:1;">
+          <input type="text" placeholder="State" disabled style="width:70px;">
+          <input type="text" placeholder="ZIP" disabled style="width:80px;">
+        </div>
+      </div>`;
+    case 'name':
+      return `<div style="display:flex;gap:6px;">
+        <input type="text" placeholder="First Name" disabled style="flex:1;">
+        <input type="text" placeholder="Last Name" disabled style="flex:1;">
+      </div>`;
+    case 'header':
+      return `<div class="header-text">${field.content || 'Section Title'}</div>`;
+    case 'paragraph':
+      return `<div class="para-text">${field.content || 'Paragraph text...'}</div>`;
+    case 'divider':
+      return `<div class="divider-line"></div>`;
+    case 'image':
+      return `<div style="border:1px dashed var(--border);border-radius:5px;padding:20px;text-align:center;color:var(--text-muted);font-size:11px;">🖼 Image placeholder</div>`;
+    case 'submit':
+      return `<button style="padding:9px 20px;border-radius:6px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:600;cursor:default;">${field.buttonText || 'Submit Form'}</button>`;
+    default:
+      return `<input type="text" placeholder="${field.placeholder || ''}" disabled>`;
+  }
+}
+
+// ===================== DROP ZONE SETUP =====================
+function setupDropZone(el) {
+  el.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    el.classList.add('drag-over');
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', (e) => {
+    e.preventDefault();
+    el.classList.remove('drag-over');
+    if (dragSourceType === 'palette') {
+      const type = e.dataTransfer.getData('text/plain') || dragSourceType;
+      addFieldToNewRow(dragSourcePaletteType);
+    }
+  });
+}
+
+function setupColDrop(colEl, rowId, colIdx) {
+  colEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    colEl.classList.add('drag-over-col');
+  });
+  colEl.addEventListener('dragleave', (e) => {
+    if (!colEl.contains(e.relatedTarget)) colEl.classList.remove('drag-over-col');
+  });
+  colEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    colEl.classList.remove('drag-over-col');
+    if (dragSourceType === 'palette') {
+      const field = createField(dragSourcePaletteType);
+      addFieldToCol(field, rowId, colIdx);
+    } else if (dragSourceType === 'canvas') {
+      moveFieldToCol(dragSourceFieldId, dragSourceRowId, dragSourceColIdx, rowId, colIdx);
+    }
+  });
+}
+
+// ===================== PALETTE DRAG =====================
+let dragSourcePaletteType = null;
+document.querySelectorAll('.palette-item, .palette-item-wide').forEach(item => {
+  item.addEventListener('dragstart', (e) => {
+    dragSourceType = 'palette';
+    dragSourcePaletteType = item.dataset.type;
+    e.dataTransfer.effectAllowed = 'copy';
+    item.classList.add('dragging-source');
+  });
+  item.addEventListener('dragend', () => item.classList.remove('dragging-source'));
+  item.addEventListener('click', () => {
+    // Click to add to last row or new row
+    const field = createField(item.dataset.type);
+    if (formData.rows.length === 0) {
+      const row = createRow(1);
+      row.cols[0].fields.push(field);
+      formData.rows.push(row);
+    } else {
+      const lastRow = formData.rows[formData.rows.length - 1];
+      // Find first empty col
+      const emptyCol = lastRow.cols.find(c => c.fields.length === 0);
+      if (emptyCol) {
+        emptyCol.fields.push(field);
+      } else {
+        const newRow = createRow(1);
+        newRow.cols[0].fields.push(field);
+        formData.rows.push(newRow);
+      }
+    }
+    render();
+    selectField(field.id, formData.rows[formData.rows.length-1].id, 0);
+    showToast('Field added', 'success');
+  });
+});
+
+// Drop on empty drop zone
+document.getElementById('dropZone').addEventListener('dragover', (e) => {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+});
+document.getElementById('dropZone').addEventListener('dragleave', () => {
+  document.getElementById('dropZone').classList.remove('drag-over');
+});
+document.getElementById('dropZone').addEventListener('drop', (e) => {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  if (dragSourceType === 'palette') {
+    addFieldToNewRow(dragSourcePaletteType);
+  }
+});
+
+// ===================== ROW MANAGEMENT =====================
+let rowCounter = 0;
+function createRow(cols) {
+  rowCounter++;
+  return {
+    id: 'r' + rowCounter,
+    cols: Array.from({length: cols}, () => ({ fields: [] }))
+  };
+}
+
+function addRow(cols) {
+  const row = createRow(cols);
+  formData.rows.push(row);
+  render();
+  showToast(`${cols}-column row added`, 'success');
+}
+
+function addFieldToNewRow(type) {
+  const field = createField(type);
+  const row = createRow(1);
+  row.cols[0].fields.push(field);
+  formData.rows.push(row);
+  render();
+  selectField(field.id, row.id, 0);
+}
+
+function addFieldToCol(field, rowId, colIdx) {
+  const row = formData.rows.find(r => r.id === rowId);
+  if (row && row.cols[colIdx]) {
+    row.cols[colIdx].fields.push(field);
+    render();
+    selectField(field.id, rowId, colIdx);
+  }
+}
+
+function moveFieldToCol(fieldId, fromRowId, fromColIdx, toRowId, toColIdx) {
+  if (fromRowId === toRowId && fromColIdx === toColIdx) return;
+  const fromRow = formData.rows.find(r => r.id === fromRowId);
+  const toRow = formData.rows.find(r => r.id === toRowId);
+  if (!fromRow || !toRow) return;
+  const fromCol = fromRow.cols[fromColIdx];
+  const toCol = toRow.cols[toColIdx];
+  if (!fromCol || !toCol) return;
+  const fieldIdx = fromCol.fields.findIndex(f => f.id === fieldId);
+  if (fieldIdx === -1) return;
+  const [field] = fromCol.fields.splice(fieldIdx, 1);
+  toCol.fields.push(field);
+  // Clean empty rows
+  formData.rows = formData.rows.filter(r => r.cols.some(c => c.fields.length > 0));
+  render();
+  selectField(field.id, toRowId, toColIdx);
+}
+
+function addColToRow(rowId) {
+  const row = formData.rows.find(r => r.id === rowId);
+  if (row && row.cols.length < 4) {
+    row.cols.push({ fields: [] });
+    render();
+  }
+}
+
+function removeColFromRow(rowId) {
+  const row = formData.rows.find(r => r.id === rowId);
+  if (row && row.cols.length > 1) {
+    // Move fields from last col to first
+    const lastCol = row.cols.pop();
+    lastCol.fields.forEach(f => row.cols[0].fields.push(f));
+    render();
+  }
+}
+
+function deleteRow(rowId) {
+  formData.rows = formData.rows.filter(r => r.id !== rowId);
+  if (selectedRowId === rowId) { selectedFieldId = null; selectedRowId = null; }
+  render();
+  renderProperties();
+}
+
+function moveRowUp(rowId) {
+  const idx = formData.rows.findIndex(r => r.id === rowId);
+  if (idx > 0) {
+    [formData.rows[idx-1], formData.rows[idx]] = [formData.rows[idx], formData.rows[idx-1]];
+    render();
+  }
+}
+
+function moveRowDown(rowId) {
+  const idx = formData.rows.findIndex(r => r.id === rowId);
+  if (idx < formData.rows.length - 1) {
+    [formData.rows[idx], formData.rows[idx+1]] = [formData.rows[idx+1], formData.rows[idx]];
+    render();
+  }
+}
+
+// ===================== FIELD MANAGEMENT =====================
+function selectField(fieldId, rowId, colIdx) {
+  selectedFieldId = fieldId;
+  selectedRowId = rowId;
+  selectedColIdx = colIdx;
+  render();
+  renderProperties();
+}
+
+function deleteField(fieldId, rowId, colIdx) {
+  const row = formData.rows.find(r => r.id === rowId);
+  if (!row) return;
+  row.cols[colIdx].fields = row.cols[colIdx].fields.filter(f => f.id !== fieldId);
+  // Remove empty rows
+  formData.rows = formData.rows.filter(r => r.cols.some(c => c.fields.length > 0));
+  if (selectedFieldId === fieldId) { selectedFieldId = null; selectedRowId = null; }
+  render();
+  renderProperties();
+  showToast('Field deleted');
+}
+
+function duplicateField(fieldId, rowId, colIdx) {
+  const row = formData.rows.find(r => r.id === rowId);
+  if (!row) return;
+  const col = row.cols[colIdx];
+  const field = col.fields.find(f => f.id === fieldId);
+  if (!field) return;
+  const copy = JSON.parse(JSON.stringify(field));
+  fieldCounter++;
+  copy.id = 'f' + fieldCounter;
+  const idx = col.fields.findIndex(f => f.id === fieldId);
+  col.fields.splice(idx + 1, 0, copy);
+  render();
+  selectField(copy.id, rowId, colIdx);
+  showToast('Field duplicated', 'success');
+}
+
+function deleteSelected() {
+  if (!selectedFieldId || !selectedRowId) return;
+  deleteField(selectedFieldId, selectedRowId, selectedColIdx);
+}
+
+function duplicateSelected() {
+  if (!selectedFieldId || !selectedRowId) return;
+  duplicateField(selectedFieldId, selectedRowId, selectedColIdx);
+}
+
+function getSelectedField() {
+  if (!selectedFieldId || !selectedRowId) return null;
+  const row = formData.rows.find(r => r.id === selectedRowId);
+  if (!row) return null;
+  const col = row.cols[selectedColIdx];
+  if (!col) return null;
+  return col.fields.find(f => f.id === selectedFieldId) || null;
+}
+
+// ===================== PROPERTIES PANEL =====================
+function renderProperties() {
+  const empty = document.getElementById('propEmpty');
+  const content = document.getElementById('propContent');
+  const footer = document.getElementById('propFooter');
+  const title = document.getElementById('propPanelTitle');
+  const subtitle = document.getElementById('propPanelSubtitle');
+
+  const field = getSelectedField();
+  if (!field) {
+    empty.style.display = 'flex';
+    content.style.display = 'none';
+    footer.style.display = 'none';
+    title.textContent = 'Properties';
+    subtitle.textContent = 'Select a field to edit';
+    return;
+  }
+
+  const def = FIELD_DEFS[field.type] || {};
+  empty.style.display = 'none';
+  content.style.display = 'block';
+  footer.style.display = 'flex';
+  title.textContent = def.label || field.type;
+  subtitle.textContent = `ID: ${field.id}`;
+
+  content.innerHTML = buildPropertiesHTML(field);
+  attachPropListeners(field);
+}
+
+function buildPropertiesHTML(field) {
+  const def = FIELD_DEFS[field.type] || {};
+  let html = `
+    <div class="prop-tabs">
+      <button class="prop-tab active" onclick="switchPropTab(this,'general')">General</button>
+      <button class="prop-tab" onclick="switchPropTab(this,'style')">Style</button>
+      <button class="prop-tab" onclick="switchPropTab(this,'validation')">Validation</button>
+    </div>
+    <div id="propTabGeneral">
+  `;
+
+  // Label
+  if (!['divider'].includes(field.type)) {
+    html += `
+      <div class="prop-group">
+        <div class="prop-group-title">Field Settings</div>
+        <div class="prop-field">
+          <label class="prop-label">Label</label>
+          <input class="prop-input" id="pLabel" value="${escHtml(field.label)}" placeholder="Field label">
+        </div>`;
+
+    if (def.hasPlaceholder) {
+      html += `
+        <div class="prop-field">
+          <label class="prop-label">Placeholder</label>
+          <input class="prop-input" id="pPlaceholder" value="${escHtml(field.placeholder)}" placeholder="Placeholder text">
+        </div>`;
+    }
+
+    if (['header','paragraph'].includes(field.type)) {
+      html += `
+        <div class="prop-field">
+          <label class="prop-label">Content</label>
+          <textarea class="prop-textarea" id="pContent">${escHtml(field.content)}</textarea>
+        </div>`;
+    }
+
+    if (field.type === 'submit') {
+      html += `
+        <div class="prop-field">
+          <label class="prop-label">Button Text</label>
+          <input class="prop-input" id="pButtonText" value="${escHtml(field.buttonText || 'Submit Form')}">
+        </div>`;
+    }
+
+    html += `
+        <div class="prop-field">
+          <label class="prop-label">Help Text</label>
+          <input class="prop-input" id="pHelpText" value="${escHtml(field.helpText)}" placeholder="Optional help text">
+        </div>
+        <div class="prop-toggle-row">
+          <span class="prop-toggle-label">Required Field</span>
+          <button class="toggle ${field.required ? 'on' : ''}" id="pRequired" onclick="toggleProp('required')"></button>
+        </div>
+      </div>`;
+  }
+
+  // Options (for dropdown, radio, checkbox)
+  if (def.hasOptions) {
+    html += `
+      <div class="prop-group">
+        <div class="prop-group-title">Options</div>
+        <div class="options-list" id="optionsList">
+          ${(field.options||[]).map((opt, i) => `
+            <div class="option-item">
+              <input type="text" value="${escHtml(opt)}" onchange="updateOption(${i}, this.value)" placeholder="Option ${i+1}">
+              <button class="option-del-btn" onclick="removeOption(${i})">✕</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="add-option-btn" onclick="addOption()">+ Add Option</button>
+      </div>`;
+  }
+
+  html += `</div>`;
+
+  // Style tab
+  html += `
+    <div id="propTabStyle" style="display:none;">
+      <div class="prop-group">
+        <div class="prop-group-title">Typography</div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label class="prop-label">Font Size</label>
+            <select class="prop-select" id="pFontSize" onchange="updateStyle('fontSize', this.value)">
+              ${['11','12','13','14','16','18','20','24','28','32'].map(s=>`<option value="${s}" ${field.style.fontSize===s?'selected':''}>${s}px</option>`).join('')}
+            </select>
+          </div>
+          <div class="prop-field">
+            <label class="prop-label">Color</label>
+            <input type="color" class="prop-input" id="pColor" value="${field.style.color || '#f0f0f8'}" style="height:36px;padding:2px;" onchange="updateStyle('color', this.value)">
+          </div>
+        </div>
+        <div class="prop-toggle-row">
+          <span class="prop-toggle-label">Bold</span>
+          <button class="toggle ${field.style.bold ? 'on' : ''}" id="pBold" onclick="toggleStyle('bold')"></button>
+        </div>
+        <div class="prop-toggle-row">
+          <span class="prop-toggle-label">Italic</span>
+          <button class="toggle ${field.style.italic ? 'on' : ''}" id="pItalic" onclick="toggleStyle('italic')"></button>
+        </div>
+      </div>
+      <div class="prop-group">
+        <div class="prop-group-title">Layout</div>
+        <div class="prop-field">
+          <label class="prop-label">Width</label>
+          <select class="prop-select" id="pWidth" onchange="updateFieldProp('width', this.value)">
+            <option value="100%" ${field.width==='100%'?'selected':''}>100% (Full)</option>
+            <option value="75%" ${field.width==='75%'?'selected':''}>75%</option>
+            <option value="50%" ${field.width==='50%'?'selected':''}>50%</option>
+            <option value="33%" ${field.width==='33%'?'selected':''}>33%</option>
+            <option value="25%" ${field.width==='25%'?'selected':''}>25%</option>
+          </select>
+        </div>
+        <div class="prop-field">
+          <label class="prop-label">CSS Class</label>
+          <input class="prop-input" id="pCssClass" value="${escHtml(field.cssClass)}" placeholder="custom-class" onchange="updateFieldProp('cssClass', this.value)">
+        </div>
+      </div>
+    </div>`;
+
+  // Validation tab
+  html += `
+    <div id="propTabValidation" style="display:none;">
+      <div class="prop-group">
+        <div class="prop-group-title">Validation Rules</div>
+        <div class="prop-toggle-row">
+          <span class="prop-toggle-label">Required</span>
+          <button class="toggle ${field.required ? 'on' : ''}" onclick="toggleProp('required')"></button>
+        </div>`;
+
+  if (['text','email','textarea','password'].includes(field.type)) {
+    html += `
+        <div class="prop-field">
+          <label class="prop-label">Min Length</label>
+          <input class="prop-input" type="number" placeholder="0" min="0">
+        </div>
+        <div class="prop-field">
+          <label class="prop-label">Max Length</label>
+          <input class="prop-input" type="number" placeholder="No limit" min="0">
+        </div>`;
+  }
+  if (field.type === 'number') {
+    html += `
+        <div class="prop-field">
+          <label class="prop-label">Min Value</label>
+          <input class="prop-input" type="number" placeholder="No minimum">
+        </div>
+        <div class="prop-field">
+          <label class="prop-label">Max Value</label>
+          <input class="prop-input" type="number" placeholder="No maximum">
+        </div>`;
+  }
+  if (field.type === 'file') {
+    html += `
+        <div class="prop-field">
+          <label class="prop-label">Allowed Types</label>
+          <input class="prop-input" placeholder="pdf, jpg, png">
+        </div>
+        <div class="prop-field">
+          <label class="prop-label">Max File Size (MB)</label>
+          <input class="prop-input" type="number" placeholder="10" min="1">
+        </div>`;
+  }
+
+  html += `
+      </div>
+    </div>`;
+
+  return html;
+}
+
+function attachPropListeners(field) {
+  const lbl = document.getElementById('pLabel');
+  if (lbl) lbl.addEventListener('input', () => { updateFieldProp('label', lbl.value); });
+
+  const ph = document.getElementById('pPlaceholder');
+  if (ph) ph.addEventListener('input', () => { updateFieldProp('placeholder', ph.value); });
+
+  const ht = document.getElementById('pHelpText');
+  if (ht) ht.addEventListener('input', () => { updateFieldProp('helpText', ht.value); });
+
+  const ct = document.getElementById('pContent');
+  if (ct) ct.addEventListener('input', () => { updateFieldProp('content', ct.value); });
+
+  const bt = document.getElementById('pButtonText');
+  if (bt) bt.addEventListener('input', () => { updateFieldProp('buttonText', bt.value); });
+}
+
+function switchPropTab(btn, tab) {
+  document.querySelectorAll('.prop-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['propTabGeneral','propTabStyle','propTabValidation'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const tabEl = document.getElementById('propTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (tabEl) tabEl.style.display = 'block';
+}
+
+function updateFieldProp(prop, value) {
+  const field = getSelectedField();
+  if (!field) return;
+  field[prop] = value;
+  render();
+  // Re-select to keep panel open
+  // Don't re-render properties to avoid losing focus
+}
+
+function toggleProp(prop) {
+  const field = getSelectedField();
+  if (!field) return;
+  field[prop] = !field[prop];
+  render();
+  renderProperties();
+}
+
+function updateStyle(prop, value) {
+  const field = getSelectedField();
+  if (!field) return;
+  field.style[prop] = value;
+}
+
+function toggleStyle(prop) {
+  const field = getSelectedField();
+  if (!field) return;
+  field.style[prop] = !field.style[prop];
+  renderProperties();
+}
+
+function updateOption(idx, value) {
+  const field = getSelectedField();
+  if (!field) return;
+  field.options[idx] = value;
+}
+
+function addOption() {
+  const field = getSelectedField();
+  if (!field) return;
+  field.options.push('New Option');
+  renderProperties();
+  render();
+}
+
+function removeOption(idx) {
+  const field = getSelectedField();
+  if (!field) return;
+  field.options.splice(idx, 1);
+  renderProperties();
+  render();
+}
+
+// ===================== CONTEXT MENU =====================
+function showCtxMenu(x, y) {
+  const menu = document.getElementById('ctxMenu');
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.classList.add('visible');
+}
+function hideCtxMenu() {
+  document.getElementById('ctxMenu').classList.remove('visible');
+}
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideCtxMenu(); });
+
+function ctxDuplicate() {
+  if (ctxTargetFieldId) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const colIdx = row.cols.findIndex(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      duplicateField(ctxTargetFieldId, row.id, colIdx);
+    }
+  }
+  hideCtxMenu();
+}
+
+function ctxDelete() {
+  if (ctxTargetFieldId) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const colIdx = row.cols.findIndex(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      deleteField(ctxTargetFieldId, row.id, colIdx);
+    }
+  }
+  hideCtxMenu();
+}
+
+function ctxMoveUp() {
+  if (ctxTargetFieldId) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const col = row.cols.find(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      const idx = col.fields.findIndex(f => f.id === ctxTargetFieldId);
+      if (idx > 0) {
+        [col.fields[idx-1], col.fields[idx]] = [col.fields[idx], col.fields[idx-1]];
+        render();
+      }
+    }
+  }
+  hideCtxMenu();
+}
+
+function ctxMoveDown() {
+  if (ctxTargetFieldId) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const col = row.cols.find(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      const idx = col.fields.findIndex(f => f.id === ctxTargetFieldId);
+      if (idx < col.fields.length - 1) {
+        [col.fields[idx], col.fields[idx+1]] = [col.fields[idx+1], col.fields[idx]];
+        render();
+      }
+    }
+  }
+  hideCtxMenu();
+}
+
+function ctxCopyStyle() {
+  if (ctxTargetFieldId) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const col = row.cols.find(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      const field = col.fields.find(f => f.id === ctxTargetFieldId);
+      copiedStyle = JSON.parse(JSON.stringify(field.style));
+      showToast('Style copied', 'success');
+    }
+  }
+  hideCtxMenu();
+}
+
+function ctxPasteStyle() {
+  if (ctxTargetFieldId && copiedStyle) {
+    const row = formData.rows.find(r => r.cols.some(c => c.fields.some(f => f.id === ctxTargetFieldId)));
+    if (row) {
+      const col = row.cols.find(c => c.fields.some(f => f.id === ctxTargetFieldId));
+      const field = col.fields.find(f => f.id === ctxTargetFieldId);
+      field.style = JSON.parse(JSON.stringify(copiedStyle));
+      render();
+      showToast('Style pasted', 'success');
+    }
+  }
+  hideCtxMenu();
+}
+
+// ===================== TABS =====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+
+  const preview = document.getElementById('previewOverlay');
+  const layout = document.getElementById('builderLayout');
+
+  if (tab === 'preview') {
+    preview.classList.add('visible');
+    renderPreview();
+  } else {
+    preview.classList.remove('visible');
+  }
+}
+
+function renderPreview() {
+  document.getElementById('previewTitle').textContent = formData.title;
+  document.getElementById('previewDesc').textContent = formData.description;
+  const container = document.getElementById('previewFields');
+  container.innerHTML = '';
+
+  formData.rows.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = row.cols.length > 1 ? 'preview-row' : '';
+    row.cols.forEach(col => {
+      col.fields.forEach(field => {
+        rowEl.appendChild(renderPreviewField(field));
+      });
+    });
+    container.appendChild(rowEl);
+  });
+}
+
+function renderPreviewField(field) {
+  const wrap = document.createElement('div');
+  wrap.className = 'preview-field';
+  const label = field.required ? `${field.label} <span style="color:var(--red)">*</span>` : field.label;
+
+  switch(field.type) {
+    case 'text': case 'email': case 'phone': case 'number': case 'date': case 'time': case 'password':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><input class="preview-input" type="${field.type === 'phone' ? 'tel' : field.type}" placeholder="${field.placeholder}">`;
+      break;
+    case 'textarea':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><textarea class="preview-textarea" placeholder="${field.placeholder}"></textarea>`;
+      break;
+    case 'dropdown':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><select class="preview-select"><option>Select...</option>${(field.options||[]).map(o=>`<option>${o}</option>`).join('')}</select>`;
+      break;
+    case 'radio':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="display:flex;flex-direction:column;gap:8px;">${(field.options||[]).map(o=>`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);"><input type="radio" name="${field.id}"> ${o}</label>`).join('')}</div>`;
+      break;
+    case 'checkbox':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="display:flex;flex-direction:column;gap:8px;">${(field.options||[]).map(o=>`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);"><input type="checkbox"> ${o}</label>`).join('')}</div>`;
+      break;
+    case 'signature':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="height:100px;border:1px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;">✍️ Click to sign</div>`;
+      break;
+    case 'file':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;color:var(--text-muted);font-size:12px;">📎 Click to upload or drag & drop</div>`;
+      break;
+    case 'header':
+      wrap.innerHTML = `<h3 style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">${field.content}</h3>`;
+      break;
+    case 'paragraph':
+      wrap.innerHTML = `<p style="font-size:13px;color:var(--text-secondary);">${field.content}</p>`;
+      break;
+    case 'divider':
+      wrap.innerHTML = `<hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">`;
+      break;
+    case 'rating':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="display:flex;gap:6px;font-size:24px;color:var(--border);">★★★★★</div>`;
+      break;
+    case 'submit':
+      wrap.innerHTML = `<button class="preview-submit">${field.buttonText || 'Submit Form'}</button>`;
+      break;
+    case 'name':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="display:flex;gap:12px;"><input class="preview-input" placeholder="First Name" style="flex:1;"><input class="preview-input" placeholder="Last Name" style="flex:1;"></div>`;
+      break;
+    case 'address':
+      wrap.innerHTML = `<label class="preview-label">${label}</label><div style="display:flex;flex-direction:column;gap:8px;"><input class="preview-input" placeholder="Street Address"><div style="display:flex;gap:8px;"><input class="preview-input" placeholder="City" style="flex:1;"><input class="preview-input" placeholder="State" style="width:80px;"><input class="preview-input" placeholder="ZIP" style="width:90px;"></div></div>`;
+      break;
+    default:
+      wrap.innerHTML = `<label class="preview-label">${label}</label><input class="preview-input" placeholder="${field.placeholder}">`;
+  }
+  return wrap;
+}
+
+// ===================== ZOOM =====================
+function changeZoom(delta) {
+  zoom = Math.min(150, Math.max(50, zoom + delta));
+  document.getElementById('zoomLabel').textContent = zoom + '%';
+  document.getElementById('canvasForm').style.transform = `scale(${zoom/100})`;
+  document.getElementById('canvasForm').style.transformOrigin = 'top center';
+}
+
+// ===================== FORM TITLE SYNC =====================
+document.getElementById('formTitleInput').addEventListener('input', function() {
+  formData.title = this.value;
+  document.getElementById('canvasFormTitle').textContent = this.value;
+  document.getElementById('previewTitle').textContent = this.value;
+});
+
+// ===================== TOOLBAR ACTIONS =====================
+function clearCanvas() {
+  if (formData.rows.length === 0) return;
+  if (confirm('Clear all fields from the canvas?')) {
+    formData.rows = [];
+    selectedFieldId = null;
+    selectedRowId = null;
+    render();
+    renderProperties();
+    showToast('Canvas cleared');
+  }
+}
+
+function exportJSON() {
+  const json = JSON.stringify(formData, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (formData.title || 'form').replace(/\s+/g,'-').toLowerCase() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON exported', 'success');
+}
+
+function saveForm() {
+  showToast('Form saved successfully', 'success');
+  document.getElementById('formStatusBadge').textContent = 'Saved';
+}
+
+function publishForm() {
+  showToast('Form published! Share link copied.', 'success');
+  document.getElementById('formStatusBadge').textContent = 'Published';
+  document.getElementById('formStatusBadge').style.background = 'rgba(99,102,241,0.15)';
+  document.getElementById('formStatusBadge').style.color = 'var(--accent)';
+  document.getElementById('formStatusBadge').style.borderColor = 'rgba(99,102,241,0.3)';
+}
+
+// ===================== PALETTE SEARCH =====================
+function filterPalette(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.palette-item, .palette-item-wide').forEach(item => {
+    const label = (item.dataset.label || '').toLowerCase();
+    const type = (item.dataset.type || '').toLowerCase();
+    item.style.display = (label.includes(q) || type.includes(q) || q === '') ? '' : 'none';
+  });
+}
+
+// ===================== TOAST =====================
+function showToast(msg, type = '') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.innerHTML = (type === 'success' ? '✅ ' : type === 'error' ? '❌ ' : 'ℹ️ ') + msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ===================== CLICK DESELECT =====================
+document.getElementById('canvasWrap').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('canvasWrap') || e.target === document.getElementById('canvasForm') || e.target === document.getElementById('dropZone')) {
+    selectedFieldId = null;
+    selectedRowId = null;
+    render();
+    renderProperties();
+  }
+});
+
+// ===================== KEYBOARD SHORTCUTS =====================
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedFieldId) {
+    deleteSelected();
+  }
+  if (e.key === 'd' && (e.ctrlKey || e.metaKey) && selectedFieldId) {
+    e.preventDefault();
+    duplicateSelected();
+  }
+  if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    saveForm();
+  }
+});
+
+// ===================== HELPERS =====================
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===================== INIT WITH SAMPLE FORM =====================
+function initSampleForm() {
+  // Row 1: Header
+  const r1 = createRow(1);
+  const h1 = createField('header');
+  h1.content = 'Personal Information';
+  r1.cols[0].fields.push(h1);
+  formData.rows.push(r1);
+
+  // Row 2: Full Name (2 cols)
+  const r2 = createRow(2);
+  const fn = createField('text');
+  fn.label = 'First Name'; fn.placeholder = 'Enter first name'; fn.required = true;
+  const ln = createField('text');
+  ln.label = 'Last Name'; ln.placeholder = 'Enter last name'; ln.required = true;
+  r2.cols[0].fields.push(fn);
+  r2.cols[1].fields.push(ln);
+  formData.rows.push(r2);
+
+  // Row 3: Email + Phone (2 cols)
+  const r3 = createRow(2);
+  const em = createField('email');
+  em.label = 'Email Address'; em.required = true;
+  const ph = createField('phone');
+  ph.label = 'Phone Number'; ph.required = true;
+  r3.cols[0].fields.push(em);
+  r3.cols[1].fields.push(ph);
+  formData.rows.push(r3);
+
+  // Row 4: DOB + Gender (2 cols)
+  const r4 = createRow(2);
+  const dob = createField('date');
+  dob.label = 'Date of Birth'; dob.required = true;
+  const gen = createField('dropdown');
+  gen.label = 'Gender'; gen.options = ['Male','Female','Non-binary','Prefer not to say'];
+  r4.cols[0].fields.push(dob);
+  r4.cols[1].fields.push(gen);
+  formData.rows.push(r4);
+
+  // Row 5: Divider
+  const r5 = createRow(1);
+  const div = createField('divider');
+  r5.cols[0].fields.push(div);
+  formData.rows.push(r5);
+
+  // Row 6: Insurance header
+  const r6 = createRow(1);
+  const h2 = createField('header');
+  h2.content = 'Insurance Information';
+  r6.cols[0].fields.push(h2);
+  formData.rows.push(r6);
+
+  // Row 7: Insurance fields (2 cols)
+  const r7 = createRow(2);
+  const ins = createField('text');
+  ins.label = 'Insurance Provider'; ins.placeholder = 'e.g. Blue Cross';
+  const mid = createField('text');
+  mid.label = 'Member ID'; mid.placeholder = 'Insurance member ID';
+  r7.cols[0].fields.push(ins);
+  r7.cols[1].fields.push(mid);
+  formData.rows.push(r7);
+
+  // Row 8: Chief complaint
+  const r8 = createRow(1);
+  const cc = createField('textarea');
+  cc.label = 'Chief Complaint / Reason for Visit';
+  cc.placeholder = 'Describe your symptoms or reason for visit...';
+  cc.required = true;
+  r8.cols[0].fields.push(cc);
+  formData.rows.push(r8);
+
+  // Row 9: Signature
+  const r9 = createRow(1);
+  const sig = createField('signature');
+  sig.label = 'Patient Signature'; sig.required = true;
+  r9.cols[0].fields.push(sig);
+  formData.rows.push(r9);
+
+  // Row 10: Submit
+  const r10 = createRow(1);
+  const sub = createField('submit');
+  sub.buttonText = 'Submit Intake Form';
+  r10.cols[0].fields.push(sub);
+  formData.rows.push(r10);
+
+  render();
+}
+
+initSampleForm();
+</script>
+</body>
+</html>
