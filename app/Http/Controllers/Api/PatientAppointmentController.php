@@ -9,6 +9,12 @@ use App\Models\AhcsCase;
 use App\Models\AhcsMedAuth;
 use App\Models\AhcsAttendance;
 use App\Models\MedhiwaSpecialityLocation;
+use App\Models\Physician;
+use App\Models\PhysicianAddress;
+use App\Models\PhysicianProvierMonthlyAvailability;
+use App\Models\PhysicianCustomLunchTime;
+use App\Models\PhysicianSpeciality;
+use App\Models\MedhiwaSpecialityVisitType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -110,16 +116,25 @@ class PatientAppointmentController extends Controller
     }
 
 
-    public function GetSpecialityWithPhysician($city)
+    public function getDepartmentSpecialityWithPhysician(Request $request)
     {
+        $department = $request->query('department');
 
-        $dbPhysician = DB::connection('physician');
+        if (!$department) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Department parameter is required',
+                'data' => []
+            ], 400);
+        }
+
+        // $dbPhysician = DB::connection('physician');
 
         /* ------------------------------------
          | 1. Get mapped specialities for this location
          |-------------------------------------*/
-        $rows = SpecialityLocation::getLocationsWithSpecialities()
-            ->where('city', $city);
+        $rows = MedhiwaSpecialityLocation::getLocationsWithSpecialities()
+            ->where('city', $department);
 
         if ($rows->isEmpty()) {
             return response()->json([
@@ -153,23 +168,25 @@ class PatientAppointmentController extends Controller
          | - Filter by physician_type = 'internal'
          | - Get working hours for current location
          |-------------------------------------*/
-        $physicians = $dbPhysician
-            ->table('physicians as p')
+        $physicians = Physician::query()
+            ->from('physicians as p')
             ->join('physician_addresses as pa', function ($join) {
                 $join->on('pa.physician_id', '=', 'p.id')
-                    ->whereNull('pa.deleted_at'); // Soft delete filter
+                    ->whereNull('pa.deleted_at');
             })
-            ->where('pa.physician_city', $city)
+            ->where('pa.physician_city', $department)
             ->where('p.physician_type', 'internal')
             ->where('p.is_deleted', 1)
-            ->where('p.is_active', 1) // Only active providers
+            ->where('p.is_active', 1)
             ->select(
                 'p.id as physician_id',
                 'p.physician_name',
                 'p.speciality_short',
                 'p.is_aids_tech',
                 'p.schedule_type',
+
                 'pa.amd_physician_code as provider_code',
+
                 'pa.physician_sun',
                 'pa.physician_mon',
                 'pa.physician_tue',
@@ -177,6 +194,7 @@ class PatientAppointmentController extends Controller
                 'pa.physician_thu',
                 'pa.physician_fri',
                 'pa.physician_sat',
+
                 'pa.physician_sun_open',
                 'pa.physician_mon_open',
                 'pa.physician_tue_open',
@@ -184,6 +202,7 @@ class PatientAppointmentController extends Controller
                 'pa.physician_thu_open',
                 'pa.physician_fri_open',
                 'pa.physician_sat_open',
+
                 'pa.physician_sun_close',
                 'pa.physician_mon_close',
                 'pa.physician_tue_close',
@@ -191,11 +210,13 @@ class PatientAppointmentController extends Controller
                 'pa.physician_thu_close',
                 'pa.physician_fri_close',
                 'pa.physician_sat_close',
+
                 'pa.lunch_time_start',
                 'pa.lunch_time_end',
                 'pa.lunch_time_enabled',
+
                 'pa.is_telemed',
-                // Day-wise telemed flags
+
                 'pa.telemed_sun',
                 'pa.telemed_mon',
                 'pa.telemed_tue',
@@ -206,6 +227,8 @@ class PatientAppointmentController extends Controller
             )
             ->get();
 
+       
+
         /* ------------------------------------
          | 4. Get OTHER location addresses for multi-location providers
          | Fetch all addresses for providers who work at the current location
@@ -215,10 +238,8 @@ class PatientAppointmentController extends Controller
 
         $otherLocations = collect();
         if (!empty($physicianIds)) {
-            $otherLocations = $dbPhysician
-                ->table('physician_addresses')
-                ->whereIn('physician_id', $physicianIds)
-                ->where('physician_city', '!=', $city) // Exclude current location
+            $otherLocations = PhysicianAddress::whereIn('physician_id', $physicianIds)
+                ->where('physician_city', '!=', $department) // Exclude current location
                 ->whereNull('deleted_at') // Soft delete filter
                 ->select(
                     'physician_id',
@@ -267,7 +288,7 @@ class PatientAppointmentController extends Controller
          | This allows the frontend to show "Working in [Location]"
          | when the provider is scheduled at another location
          |-------------------------------------*/
-        $physiciansWithOtherLocations = $physicians->map(function ($physician) use ($otherLocations, $city) { // Added by Devin – 17-Mar-2026: pass $city for monthly availability query
+        $physiciansWithOtherLocations = $physicians->map(function ($physician) use ($otherLocations, $department) { // Added by Devin – 17-Mar-2026: pass $department for monthly availability query
             $physicianOtherLocs = $otherLocations[$physician->physician_id] ?? collect();
 
             // Format other locations with their working hours
@@ -316,8 +337,8 @@ class PatientAppointmentController extends Controller
             // Added by Devin – 17-Mar-2026: Include monthly availability for the CURRENT location
             // Only fetch if the provider uses monthly schedule
             if (($physician->schedule_type ?? 'weekly') === 'monthly') {
-                $physician->monthly_availability = ProviderMonthlyAvailability::where('provider_id', $physician->physician_id)
-                    ->where('provider_city', $city)
+                $physician->monthly_availability = PhysicianProvierMonthlyAvailability::where('provider_id', $physician->physician_id)
+                    ->where('provider_city', $department)
                     ->select('available_date as date', 'open_time', 'close_time')
                     ->orderBy('available_date')
                     ->get()
@@ -327,7 +348,7 @@ class PatientAppointmentController extends Controller
             }
 
             // Include custom lunch times (today and future only)
-            $physician->custom_lunch_times = ProviderCustomLunchTime::where('physician_id', $physician->physician_id)
+            $physician->custom_lunch_times = PhysicianCustomLunchTime::where('physician_id', $physician->physician_id)
                 ->where('custom_date', '>=', now()->toDateString())
                 ->select('id', 'custom_date as date', 'lunch_start', 'lunch_end', 'lunch_enabled')
                 ->orderBy('custom_date')
@@ -343,9 +364,7 @@ class PatientAppointmentController extends Controller
          |-------------------------------------*/
         $physicianSpecialties = collect();
         if (!empty($physicianIds)) {
-            $physicianSpecialties = $dbPhysician
-                ->table('physician_specialties')
-                ->whereIn('physician_id', $physicianIds)
+            $physicianSpecialties = PhysicianSpeciality::whereIn('physician_id', $physicianIds)
                 ->select('physician_id', 'specialty')
                 ->get();
         }
@@ -395,7 +414,7 @@ class PatientAppointmentController extends Controller
         $specialityIds = $specialities->pluck('id')->toArray();
         $visitTypesBySpeciality = collect();
         if (!empty($specialityIds)) {
-            $visitTypesBySpeciality = MedSpecialityVisitType::with(['orderType', 'duration'])
+            $visitTypesBySpeciality = MedhiwaSpecialityVisitType::with(['orderType', 'duration'])
                 ->whereIn('med_speciality_id', $specialityIds)
                 ->whereNull('deleted_at')
                 ->get()
@@ -454,8 +473,7 @@ class PatientAppointmentController extends Controller
             'data' => $finalData
         ];
 
-        Cache::put($cacheKey, $responseData, 300);
-
         return response()->json($responseData);
     }
+
 }

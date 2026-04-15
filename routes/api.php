@@ -22,4 +22,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('get-patient-appointments',[PatientAppointmentController::class,'getPatientAppointments']);
 Route::get('get-appointment-departments',[PatientAppointmentController::class, 'getAppointmentDepartments']);
+Route::get('get-department-speciality-with-physician',[PatientAppointmentController::class, 'getDepartmentSpecialityWithPhysician']);
 Route::get('get-patient-details',[PatientController::class, 'getPatientDetails']);

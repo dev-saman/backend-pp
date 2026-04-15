@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MedhiwaSpeciality;
+
 
 class MedhiwaSpecialityLocation extends Model
 {
@@ -20,10 +22,6 @@ class MedhiwaSpecialityLocation extends Model
         'status',
     ];
 
-    protected $casts = [
-        'status' => 'integer',
-    ];
-
 
     public static function getLocationsWithSpecialities()
     {
@@ -31,8 +29,8 @@ class MedhiwaSpecialityLocation extends Model
         // User Management Related Code
         // Refactored to reuse DB connection variable
         // ==============================
-        $dbMedhiwa = DB::connection('medhiwa');
-        $rows = $dbMedhiwa->table('speciality_location')
+        
+        $rows = self::query()
             ->whereNull('speciality_location.deleted_at')
             ->orderBy('speciality_location.city')
             ->get();
@@ -53,7 +51,7 @@ class MedhiwaSpecialityLocation extends Model
             return collect();
         }
 
-        $specialities = $dbMedhiwa->table('med_speciality')
+        $specialities = MedhiwaSpeciality::query()
             ->whereIn('id', $allIds)
             ->get()
             ->keyBy('id');
