@@ -15,6 +15,9 @@ use App\Models\PhysicianProvierMonthlyAvailability;
 use App\Models\PhysicianCustomLunchTime;
 use App\Models\PhysicianSpeciality;
 use App\Models\MedhiwaSpecialityVisitType;
+use App\Models\MedhiwaAmdProviderCompanyMapping;
+use App\Models\MedhiwaAttendance;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -115,7 +118,6 @@ class PatientAppointmentController extends Controller
         }
     }
 
-
     public function getDepartmentSpecialityWithPhysician(Request $request)
     {
         $department = $request->query('department');
@@ -127,8 +129,6 @@ class PatientAppointmentController extends Controller
                 'data' => []
             ], 400);
         }
-
-        // $dbPhysician = DB::connection('physician');
 
         /* ------------------------------------
          | 1. Get mapped specialities for this location
@@ -283,17 +283,35 @@ class PatientAppointmentController extends Controller
                 ->groupBy('physician_id');
         }
 
+        $monthlyAvailabilities = PhysicianProvierMonthlyAvailability::whereIn('provider_id', $physicianIds)
+                                ->where('provider_city', $department)
+                                ->select('provider_id', 'available_date as date', 'open_time', 'close_time')
+                                ->orderBy('available_date')
+                                ->get()
+                                ->groupBy('provider_id');
+
+        $customLunchTimes = PhysicianCustomLunchTime::whereIn('physician_id', $physicianIds)
+                            ->where('custom_date', '>=', now()->toDateString())
+                            ->select('physician_id', 'id', 'custom_date as date', 'lunch_start', 'lunch_end', 'lunch_enabled')
+                            ->orderBy('custom_date')
+                            ->get()
+                            ->groupBy('physician_id');
         /* ------------------------------------
          | 5. Attach other_locations to each physician
          | This allows the frontend to show "Working in [Location]"
          | when the provider is scheduled at another location
          |-------------------------------------*/
-        $physiciansWithOtherLocations = $physicians->map(function ($physician) use ($otherLocations, $department) { // Added by Devin – 17-Mar-2026: pass $department for monthly availability query
+        $physiciansWithOtherLocations = $physicians->map(function ($physician) use (
+            $otherLocations,
+            $department,
+            $monthlyAvailabilities,
+            $customLunchTimes
+        ) {
+
             $physicianOtherLocs = $otherLocations[$physician->physician_id] ?? collect();
 
-            // Format other locations with their working hours
-            $physician->other_locations = $physicianOtherLocs->map(function ($loc) use ($physician) { // Added by Devin – 17-Mar-2026: pass $physician to closure for schedule_type check
-                $locationData = [
+            $physician->other_locations = $physicianOtherLocs->map(function ($loc) {
+                return [
                     'city' => $loc->physician_city,
                     'provider_code' => $loc->provider_code,
                     'physician_sun' => $loc->physician_sun,
@@ -303,6 +321,7 @@ class PatientAppointmentController extends Controller
                     'physician_thu' => $loc->physician_thu,
                     'physician_fri' => $loc->physician_fri,
                     'physician_sat' => $loc->physician_sat,
+
                     'physician_sun_open' => $loc->physician_sun_open,
                     'physician_mon_open' => $loc->physician_mon_open,
                     'physician_tue_open' => $loc->physician_tue_open,
@@ -310,6 +329,7 @@ class PatientAppointmentController extends Controller
                     'physician_thu_open' => $loc->physician_thu_open,
                     'physician_fri_open' => $loc->physician_fri_open,
                     'physician_sat_open' => $loc->physician_sat_open,
+
                     'physician_sun_close' => $loc->physician_sun_close,
                     'physician_mon_close' => $loc->physician_mon_close,
                     'physician_tue_close' => $loc->physician_tue_close,
@@ -317,11 +337,13 @@ class PatientAppointmentController extends Controller
                     'physician_thu_close' => $loc->physician_thu_close,
                     'physician_fri_close' => $loc->physician_fri_close,
                     'physician_sat_close' => $loc->physician_sat_close,
+
                     'lunch_time_start' => $loc->lunch_time_start,
                     'lunch_time_end' => $loc->lunch_time_end,
                     'lunch_time_enabled' => (int) ($loc->lunch_time_enabled ?? 1),
+
                     'is_telemed' => (bool) $loc->is_telemed,
-                    // Day-wise telemed flags
+
                     'telemed_sun' => (int) ($loc->telemed_sun ?? 1),
                     'telemed_mon' => (int) ($loc->telemed_mon ?? 1),
                     'telemed_tue' => (int) ($loc->telemed_tue ?? 1),
@@ -330,30 +352,17 @@ class PatientAppointmentController extends Controller
                     'telemed_fri' => (int) ($loc->telemed_fri ?? 1),
                     'telemed_sat' => (int) ($loc->telemed_sat ?? 1),
                 ];
-
-                return $locationData;
             })->values()->toArray();
 
-            // Added by Devin – 17-Mar-2026: Include monthly availability for the CURRENT location
-            // Only fetch if the provider uses monthly schedule
-            if (($physician->schedule_type ?? 'weekly') === 'monthly') {
-                $physician->monthly_availability = PhysicianProvierMonthlyAvailability::where('provider_id', $physician->physician_id)
-                    ->where('provider_city', $department)
-                    ->select('available_date as date', 'open_time', 'close_time')
-                    ->orderBy('available_date')
-                    ->get()
-                    ->toArray();
-            } else {
-                $physician->monthly_availability = [];
-            }
+            // ✅ Monthly availability (NO QUERY HERE)
+            $physician->monthly_availability =
+                ($physician->schedule_type === 'monthly')
+                    ? ($monthlyAvailabilities[$physician->physician_id] ?? collect())->values()->toArray()
+                    : [];
 
-            // Include custom lunch times (today and future only)
-            $physician->custom_lunch_times = PhysicianCustomLunchTime::where('physician_id', $physician->physician_id)
-                ->where('custom_date', '>=', now()->toDateString())
-                ->select('id', 'custom_date as date', 'lunch_start', 'lunch_end', 'lunch_enabled')
-                ->orderBy('custom_date')
-                ->get()
-                ->toArray();
+            // ✅ Custom lunch times (NO QUERY HERE)
+            $physician->custom_lunch_times =
+                ($customLunchTimes[$physician->physician_id] ?? collect())->values()->toArray();
 
             return $physician;
         });
@@ -386,7 +395,7 @@ class PatientAppointmentController extends Controller
                 if (!$physiciansBySpecShort->has($shortName)) {
                     $physiciansBySpecShort[$shortName] = collect();
                 }
-                $physician = $physiciansWithOtherLocations->firstWhere('physician_id', $ps->physician_id);
+                $physician = $physicianMap[$ps->physician_id] ?? null;
                 if ($physician) {
                     $physiciansBySpecShort[$shortName]->push($physician);
                     $physiciansWithPivot->push($ps->physician_id);
@@ -476,4 +485,127 @@ class PatientAppointmentController extends Controller
         return response()->json($responseData);
     }
 
+    public function getCompanyByDepartmentAndProvider(Request $request){
+        $department = $request->query('department');
+        $providerId = $request->query('provider_id');
+
+        if (empty($department) || empty($providerId)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Department and Provider parameters are required',
+                'data' => []
+            ], 400);
+        }
+
+        try {
+            $companies = MedhiwaAmdProviderCompanyMapping::where('amd_location', $department)
+                ->where('amd_provider_id', $providerId)
+                ->get(['amd_provider_id', 'amd_code', 'amd_company_name']);
+
+            if($companies->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No companies found for this location',
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => true,
+                'count' => $companies->count(),
+                'companies' => $companies
+            ], 200);
+        }catch (\Throwable $e) {
+            Log::error("Error fetching companies by location and department: " . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong',
+                'data' => []
+            ], 500);
+        }
+    }
+
+    public function schedulePatientAppointment(Request $request, $userName, $caseId){
+        try{
+            // Validate input
+            $request->validate([
+                'department'      => 'required|string|max:100',
+                'service'         => 'required|string|max:100',
+                'attend_type'     => 'nullable|string|max:10',
+                'pa_req'          => 'nullable|string|max:10',
+
+                'physicanId'      => 'required|integer',
+                'physicanName'    => 'required|string|max:255',
+
+                'attend_date'     => 'required|date',
+                'svc_date_start'  => 'required|date|before_or_equal:svc_date_end',
+                'svc_date_end'    => 'required|date|after_or_equal:svc_date_start',
+
+                'time'            => 'nullable|date_format:H:i',
+                'end_time'        => 'nullable|date_format:H:i|after:time',
+
+                'status'          => 'required|string|max:50',
+                'pa_resp'         => 'required|string|max:50',
+
+                'attend_notes'    => 'nullable|string',
+
+                'no_sessions'     => 'required|integer|min:1',
+
+                'provider_code'   => 'nullable|string|max:50',
+                'company_name'    => 'nullable|string|max:255',
+            ]);
+
+            // Log the incoming request data
+            Log::info("Scheduling appointment for user: $userName, case: $caseId", [
+                'request_data' => $request->all()
+            ]);
+
+            $start_time = date('H:i:s', strtotime($request->input('time')));
+            $end_time = date('H:i:s', strtotime($request->input('end_time')));
+
+            $start = Carbon::parse($start_time);
+            $end = Carbon::parse($end_time);
+            $duration = $start->diffInMinutes($end);
+
+            $diff = $end->diff($start);
+            $hours = $diff->h;
+            $minutes = $diff->i / 60;
+
+            $pixels = ($hours * 92 + $minutes * 92) . 'px';
+
+            $appointment = MedhiwaAttendance::create([
+                'username' => $userName,
+                'ma_id' => 1,
+                'department' => $request->input('department'),
+                'service' => $request->input('service'),
+                'attend_type' => $request->input('attend_type', null),
+                'pa_req' => $request->input('pa_req', null),
+                'provider_id' => $request->input('physicanId'),
+                'provider_name' => $request->input('physicanName'),
+                'attend_date' => $request->input('attend_date'),
+                'time' => $request->input('time', null),
+                'end_time' => $request->input('end_time', null),
+                'attend_status' =>  'Requested' ?? $request->input('attend_status') ,
+                'attend_notes' => $request->input('attend_notes', null),
+                'provider_code' => $request->input('provider_code', null),
+                'company_name' => $request->input('company_name', null),
+                'pixels' => $pixels,
+                'length' => $duration,
+                'platform_name' => 'New Patient',
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Appointment request submitted successfully',
+                'appointment_id' => $appointment->id
+            ],200);
+
+        }catch(\Throwable $e){
+            Log::error("Error scheduling patient appointment: " . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Something went wrong',
+            ], 500);
+        }
+    }
 }
