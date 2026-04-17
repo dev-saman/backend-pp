@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
+
+class ClinicalController extends Controller
+{
+    public function getPatientSubmitedFormData($patientId)
+    {
+        try {
+            $url = "https://ptp.advantagehcs.com/api/submittedData/" . $patientId;
+
+            $response = Http::timeout(30)
+                ->acceptJson()
+                ->asJson()
+                ->post($url, []);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $response->json()['message'] ?? 'API error',
+                    'status_code' => $response->status()
+                ], $response->status());
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $response->json()
+            ], 200);
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Patient API Error', [
+                'patient_id' => $patientId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching patient form data'
+            ], 500);
+        }
+    }
+
+    public function downloadPdf(Request $request)
+    {
+        try {
+            // ✅ Validate input
+            $validator = Validator::make($request->all(), [
+                'pdfUrl' => 'required|url'
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid URL provided',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $pdfUrl = $request->pdfUrl;
+
+            // ✅ Get filename from URL
+            $filename = basename(parse_url($pdfUrl, PHP_URL_PATH));
+
+            // ✅ Storage path (recommended Laravel way)
+            $saveDir = public_path('assets/images/activecollab/pdf');
+
+            if (!File::exists($saveDir)) {
+                File::makeDirectory($saveDir, 0777, true, true);
+            }
+
+            $savePath = $saveDir . '/' . $filename;
+
+            // ✅ Download PDF using Laravel HTTP client
+            $response = Http::get($pdfUrl);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Failed to download pdf'
+                ], 500);
+            }
+
+            // ✅ Save file
+            File::put($savePath, $response->body());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'PDF downloaded',
+                'savedUrl' => asset('assets/images/activecollab/pdf/' . $filename)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}

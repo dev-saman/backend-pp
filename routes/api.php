@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PatientAppointmentController;
 use App\Http\Controllers\Api\PatientController;
+use App\Http\Controllers\Api\ClinicalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,4 +27,5 @@ Route::get('get-department-speciality-with-physician',[PatientAppointmentControl
 
 Route::get('get-company-by-department-and-provider',[PatientAppointmentController::class, 'getCompanyByDepartmentAndProvider']);
 Route::post('schedule-patient-appointment/{userName}/{caseId}',[PatientAppointmentController::class, 'schedulePatientAppointment']);
+Route::get('get-patient-submited-form-data/{patientId}',[ClinicalController::class, 'getPatientSubmitedFormData']);
 Route::get('get-patient-details',[PatientController::class, 'getPatientDetails']);
