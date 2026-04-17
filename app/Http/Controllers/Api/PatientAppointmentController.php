@@ -18,6 +18,7 @@ use App\Models\MedhiwaSpecialityVisitType;
 use App\Models\MedhiwaAmdProviderCompanyMapping;
 use App\Models\MedhiwaAttendance;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -526,8 +527,8 @@ class PatientAppointmentController extends Controller
 
     public function schedulePatientAppointment(Request $request, $userName, $caseId){
         try{
-            // Validate input
-            $request->validate([
+            $validator = Validator::make($request->all(), [
+                
                 'department'      => 'required|string|max:100',
                 'service'         => 'required|string|max:100',
                 'attend_type'     => 'nullable|string|max:10',
@@ -552,7 +553,17 @@ class PatientAppointmentController extends Controller
 
                 'provider_code'   => 'nullable|string|max:50',
                 'company_name'    => 'nullable|string|max:255',
+            
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validation errors',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+            
 
             // Log the incoming request data
             Log::info("Scheduling appointment for user: $userName, case: $caseId", [
