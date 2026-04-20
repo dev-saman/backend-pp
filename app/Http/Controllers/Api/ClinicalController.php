@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 
 class ClinicalController extends Controller
 {
@@ -46,59 +47,162 @@ class ClinicalController extends Controller
         }
     }
 
-    public function downloadPdf(Request $request)
+    // public function downloadPdf(Request $request)
+    // {
+    //     try {
+    //         // ✅ Validate input
+    //         $validator = Validator::make($request->all(), [
+    //             'pdfUrl' => 'required|url'
+    //         ]);
+            
+    //         if ($validator->fails()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Invalid URL provided',
+    //                 'errors' => $validator->errors()
+    //             ], 422);
+    //         }
+
+    //         $pdfUrl = $request->pdfUrl;
+
+    //         // ✅ Get filename from URL
+    //         $filename = basename(parse_url($pdfUrl, PHP_URL_PATH));
+
+    //         // ✅ Storage path (recommended Laravel way)
+    //         $saveDir = public_path('assets/images/activecollab/pdf');
+
+    //         if (!File::exists($saveDir)) {
+    //             File::makeDirectory($saveDir, 0777, true, true);
+    //         }
+
+    //         $savePath = $saveDir . '/' . $filename;
+
+    //         // ✅ Download PDF using Laravel HTTP client
+    //         $response = Http::get($pdfUrl);
+
+    //         if (!$response->successful()) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'error' => 'Failed to download pdf'
+    //             ], 500);
+    //         }
+
+    //         // ✅ Save file
+    //         File::put($savePath, $response->body());
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'PDF downloaded',
+    //             'savedUrl' => asset('assets/images/activecollab/pdf/' . $filename)
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function downloadPatientSubmitedFormPdf(Request $request)
     {
         try {
-            // ✅ Validate input
+            // ✅ Validate input (array of URLs)
             $validator = Validator::make($request->all(), [
-                'pdfUrl' => 'required|url'
+                'pdfUrls' => 'required|array',
+                'pdfUrls.*' => 'required|url'
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid URL provided',
+                    'message' => 'Invalid URLs provided',
                     'errors' => $validator->errors()
                 ], 422);
             }
 
-            $pdfUrl = $request->pdfUrl;
+            $pdfUrls = $request->pdfUrls;
 
-            // ✅ Get filename from URL
-            $filename = basename(parse_url($pdfUrl, PHP_URL_PATH));
-
-            // ✅ Storage path (recommended Laravel way)
             $saveDir = public_path('assets/images/activecollab/pdf');
 
             if (!File::exists($saveDir)) {
                 File::makeDirectory($saveDir, 0777, true, true);
             }
 
-            $savePath = $saveDir . '/' . $filename;
+            $results = [];
 
-            // ✅ Download PDF using Laravel HTTP client
-            $response = Http::get($pdfUrl);
+            foreach ($pdfUrls as $pdfUrl) {
 
-            if (!$response->successful()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Failed to download pdf'
-                ], 500);
+                try {
+                    // ✅ Get filename
+                    $filename = basename(parse_url($pdfUrl, PHP_URL_PATH));
+
+                    // Optional: avoid duplicate names
+                    $filename = time() . '_' . $filename;
+
+                    $savePath = $saveDir . '/' . $filename;
+
+                    // ✅ Download
+                    $response = Http::get($pdfUrl);
+
+                    if (!$response->successful()) {
+                        $results[] = [
+                            'url' => $pdfUrl,
+                            'status' => false,
+                            'error' => 'Download failed'
+                        ];
+                        continue;
+                    }
+
+                    // ✅ Save file
+                    File::put($savePath, $response->body());
+
+                    $results[] = [
+                        'url' => $pdfUrl,
+                        'status' => true,
+                        'savedUrl' => asset('assets/images/activecollab/pdf/' . $filename)
+                    ];
+
+                } catch (\Exception $e) {
+                    $results[] = [
+                        'url' => $pdfUrl,
+                        'status' => false,
+                        'error' => $e->getMessage()
+                    ];
+                }
             }
-
-            // ✅ Save file
-            File::put($savePath, $response->body());
 
             return response()->json([
                 'success' => true,
-                'message' => 'PDF downloaded',
-                'savedUrl' => asset('assets/images/activecollab/pdf/' . $filename)
+                'message' => 'PDF processing completed',
+                'data' => $results
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function viewPatientSubmitedFormPdf($formValueId)
+    {
+        try {
+
+            if (!$formValueId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Form value ID is required'
+                ], 400);
+            }
+
+            
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching PDF data'
             ], 500);
         }
     }

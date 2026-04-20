@@ -17,6 +17,8 @@ use App\Models\PhysicianSpeciality;
 use App\Models\MedhiwaSpecialityVisitType;
 use App\Models\MedhiwaAmdProviderCompanyMapping;
 use App\Models\MedhiwaAttendance;
+use App\Models\MedhiwaSpeciality;
+use App\Models\MedhiwaCareNewOrderType;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +60,18 @@ class PatientAppointmentController extends Controller
             $appointments = AhcsAttendance::whereIn('ma_id', $medAuthIds)
                 ->whereNotIn('attend_status', ['DL', 'Block','RS'])
                 ->get();
+
+            $specialities = MedhiwaSpeciality::pluck('name', 'short_name');
+            $attendTypes = MedhiwaCareNewOrderType::pluck('name', 'code');
+
+            // ✅ Map without DB hit
+            $appointments->transform(function ($appointment) use ($specialities, $attendTypes) {
+
+                $appointment->service_full_name = $specialities[$appointment->service] ?? null;
+                $appointment->attend_type_full_name = $attendTypes[$appointment->attend_type] ?? null;
+
+                return $appointment;
+            });
 
             // ✅ Split into upcoming & past
             $today = now()->startOfDay();

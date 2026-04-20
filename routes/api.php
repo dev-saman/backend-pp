@@ -28,4 +28,6 @@ Route::get('get-department-speciality-with-physician',[PatientAppointmentControl
 Route::get('get-company-by-department-and-provider',[PatientAppointmentController::class, 'getCompanyByDepartmentAndProvider']);
 Route::post('schedule-patient-appointment/{userName}/{caseId}',[PatientAppointmentController::class, 'schedulePatientAppointment']);
 Route::get('get-patient-submited-form-data/{patientId}',[ClinicalController::class, 'getPatientSubmitedFormData']);
+Route::post('download-patient-submited-form-pdf',[ClinicalController::class, 'downloadPatientSubmitedFormPdf']);
+Route::get('view-patient-submited-form/{formValueId}',[ClinicalController::class, 'viewPatientSubmitedFormPdf']);
 Route::get('get-patient-details',[PatientController::class, 'getPatientDetails']);
