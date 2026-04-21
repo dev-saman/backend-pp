@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\Funnel;
-use App\Models\Patient;
+use App\Models\Patient; 
 use App\Models\PatientFunnelAssignment;
 use App\Models\FormSubmission;
 use Illuminate\Http\Request;
