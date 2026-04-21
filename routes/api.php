@@ -20,10 +20,11 @@ use App\Http\Controllers\Api\Auth\AuthApiController;
 
 Route::post('login',[AuthApiController::class, 'login']);
 
-Route::middleware('auth:api')->group(function (){
-
+Route::middleware('auth:api')->group(function () {
     Route::post('logout',[AuthApiController::class, 'logout']);
+});
 
+Route::middleware(['auth:api', 'role.api:patient,admin'])->group(function (){
     Route::get('get-patient-appointments',[PatientAppointmentController::class,'getPatientAppointments']);
     Route::get('get-appointment-departments',[PatientAppointmentController::class, 'getAppointmentDepartments']);
     Route::get('get-department-speciality-with-physician',[PatientAppointmentController::class, 'getDepartmentSpecialityWithPhysician']);
@@ -34,6 +35,5 @@ Route::middleware('auth:api')->group(function (){
     Route::post('download-patient-submited-form-pdf',[ClinicalController::class, 'downloadPatientSubmitedFormPdf']);
     Route::get('view-patient-submited-form/{formValueId}',[ClinicalController::class, 'viewPatientSubmitedFormPdf']);
     Route::get('get-patient-details',[PatientController::class, 'getPatientDetails']);
-
 });
 

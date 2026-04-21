@@ -16,54 +16,67 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PatientController extends Controller
 {
-    public function getPatientDetails(Request $request): JsonResponse
+    public function getPatientDetails(): JsonResponse
     {
         try {
-            $patient_id = $request->query('patient_id');
-            $case_id = $request->query('case_id');
+            $userDetails = auth()->user();
+            $patient_id = $userDetails->patient_id ?? 10004619;
+            // $case_id = $userDetails->case_id ?? 10004802;
 
             if (!$patient_id) {
                 throw new \Exception("Patient ID is required", 400);
             }
 
-            if (!$case_id) {
-                throw new \Exception("Case ID is required", 400);
-            }
+            // if (!$case_id) {
+            //     throw new \Exception("Case ID is required", 400);
+            // }
 
             // ✅ Use findOrFail (auto throw)
             $patient = AhcsPatient::findOrFail($patient_id);
 
+            $patientDetails = [
+                'id' => $patient->id,
+                'first_name' => $patient->first_name,
+                'last_name' => $patient->last_name,
+                'full_name' => $patient->patient_name,
+                'dob' => $patient->dob,
+                'email' => $patient->email,
+                'home_phone' => $patient->home_ph,
+                'address1' => $patient->address1,
+
+            ];
+
             // ✅ Ensure case belongs to patient
-            $case = AhcsCase::where('patient_id', $patient_id)
-                ->where('id', $case_id)
-                ->first();
+            // $case = AhcsCase::where('patient_id', $patient_id)
+            //     ->where('id', $case_id)
+            //     ->first();
 
-            if (!$case) {
-                throw new \Exception("Case not found for the given patient", 404);
-            }
+            // if (!$case) {
+            //     throw new \Exception("Case not found for the given patient", 404);
+            // }
 
-            $med_auth = AhcsMedAuth::where('case_id', $case_id)->first();
-            if (!$med_auth) {
-                throw new \Exception("MedAuth not found for the given case", 404);
-            }
+            // $med_auth = AhcsMedAuth::where('case_id', $case_id)->first();
+            // if (!$med_auth) {
+            //     throw new \Exception("MedAuth not found for the given case", 404);
+            // }
 
-            $intake = AhcsIntake::where('patient_id', $patient_id)->first();
-            if (!$intake) {
-                throw new \Exception("Intake not found for the given patient", 404);
-            }
+            // $intake = AhcsIntake::where('patient_id', $patient_id)->first();
+            // if (!$intake) {
+            //     throw new \Exception("Intake not found for the given patient", 404);
+            // }
 
-            $workcamp = AhcsWorkComp::where('patient_id', $patient_id)->first();
-            if (!$workcamp) {
-                throw new \Exception("WorkComp not found for the given patient", 404);
-            }
+            // $workcamp = AhcsWorkComp::where('patient_id', $patient_id)->first();
+            // if (!$workcamp) {
+            //     throw new \Exception("WorkComp not found for the given patient", 404);
+            // }
 
             return response()->json([
                 'status' => 'success',
-                'patient_details' => $patient->toArray(),
-                'case_details' => $case->toArray(),
-                'med_auth_details' => $med_auth->toArray(),
-                'intake_details' => $intake->toArray(),
-                'workcamp_details' => $workcamp->toArray(),
+                'patient_details' => $patientDetails,
+                // 'case_details' => $case->toArray(),
+                // 'med_auth_details' => $med_auth->toArray(),
+                // 'intake_details' => $intake->toArray(),
+                // 'workcamp_details' => $workcamp->toArray(),
             ], 200);
 
         } catch (ModelNotFoundException $e) {
