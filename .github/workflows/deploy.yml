@@ -19,8 +19,14 @@ jobs:
           echo "Fixing git safe directory..."
           git config --global --add safe.directory /var/www/html/admin-panel
 
-          echo "Pulling latest code..."
-          git pull origin main
+          echo "Fetching latest code..."
+          git fetch origin
+
+          echo "Resetting local changes..."
+          git reset --hard origin/main
+
+          echo "Cleaning untracked files..."
+          git clean -fd
 
           echo "Installing dependencies..."
           composer install --no-interaction --prefer-dist --optimize-autoloader
