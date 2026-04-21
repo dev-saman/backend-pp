@@ -13,7 +13,7 @@ jobs:
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: 10.0.0.28        # your server IP
+          host: app.advantagehcs.com        # your server IP
           username: akmal        # your SSH user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
