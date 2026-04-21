@@ -3,33 +3,28 @@ name: Deploy Laravel App
 on:
   push:
     branches:
-      - main   # change if your branch is different
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ["self-hosted","linux","x64","production"]
 
     steps:
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: app.advantagehcs.com        # your server IP
-          username: akmal        # your SSH user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www/html/admin-panel
+      - name: Deploy locally
+        run: |
+          cd /var/www/html/admin-panel
 
-            echo "Pulling latest code..."
-            git pull origin main
+          echo "Pulling latest code..."
+          git pull origin main
 
-            echo "Installing dependencies..."
-            composer install --no-interaction --prefer-dist --optimize-autoloader
+          echo "Installing dependencies..."
+          composer install --no-interaction --prefer-dist --optimize-autoloader
 
-            echo "Running migrations..."
-            php artisan migrate --force
+          echo "Running migrations..."
+          php artisan migrate --force
 
-            echo "Clearing cache..."
-            php artisan optimize:clear
+          echo "Clearing cache..."
+          php artisan optimize:clear
 
-            echo "Restarting queue..."
-            php artisan queue:restart
+          echo "Restarting queue..."
+          php artisan queue:restart
