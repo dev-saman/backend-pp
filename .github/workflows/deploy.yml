@@ -12,7 +12,12 @@ jobs:
     steps:
       - name: Deploy locally
         run: |
+          set -e
+
           cd /var/www/html/admin-panel
+
+          echo "Fixing git safe directory..."
+          git config --global --add safe.directory /var/www/html/admin-panel
 
           echo "Pulling latest code..."
           git pull origin main
