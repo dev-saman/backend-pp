@@ -108,10 +108,8 @@ class PatientAppointmentController extends Controller
 
     //         return response()->json([
     //             'status' => 'error',
-    //             'message' => $e->getCode() == 400 || $e->getCode() == 404 
-    //                 ? $e->getMessage() 
-    //                 : 'Something went wrong'
-    //         ], $e->getCode() ?: 500);
+    //             'message' => 'Something went wrong'
+    //         ],500);
     //     }
     // }
 
@@ -205,10 +203,8 @@ class PatientAppointmentController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => in_array($e->getCode(), [400, 404])
-                    ? $e->getMessage()
-                    : 'Something went wrong'
-            ], $e->getCode() ?: 500);
+                'message' => 'Something went wrong'
+            ],500);
         }
     }
 

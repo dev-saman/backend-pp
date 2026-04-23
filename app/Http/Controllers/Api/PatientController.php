@@ -91,7 +91,7 @@ class PatientController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
-            ], $e->getCode() ?: 500);
+            ],500);
         }
     }
 }
