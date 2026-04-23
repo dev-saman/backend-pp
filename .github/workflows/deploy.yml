@@ -23,13 +23,14 @@ jobs:
           npm run build
 
           php artisan optimize:clear
-
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
 
           php artisan storage:link || true
 
-          sudo chown -R akmal:www-data /var/www/html/admin-panel
-          sudo chmod -R 775 /var/www/html/admin-panel/storage
-          sudo chmod -R 775 /var/www/html/admin-panel/bootstrap/cache
+          sudo chown -R akmal:www-data storage bootstrap/cache
+          sudo find storage -type d -exec chmod 775 {} \;
+          sudo find storage -type f -exec chmod 664 {} \;
+          sudo find bootstrap/cache -type d -exec chmod 775 {} \;
+          sudo find bootstrap/cache -type f -exec chmod 664 {} \;
