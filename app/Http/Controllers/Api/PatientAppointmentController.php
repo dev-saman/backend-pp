@@ -169,12 +169,17 @@ class PatientAppointmentController extends Controller
 
             // ✅ Load mappings
             $specialities = MedhiwaSpeciality::pluck('name', 'short_name');
-            $attendTypes = MedhiwaCareNewOrderType::pluck('name', 'code');
+            $attendTypes = MedhiwaCareNewOrderType::pluck('name', 'code')
+                        ->mapWithKeys(function ($value, $key) {
+                            return [strtolower($key) => $value];
+                        });
 
             // ✅ Map names
-            $appointments->transform(function ($appointment) use ($specialities, $attendTypes) {
-                $appointment->service_full_name = $specialities[$appointment->service] ?? null;
-                $appointment->attend_type_full_name = $attendTypes[$appointment->attend_type] ?? null;
+            $appointments->transform(function ($appointment) use ($attendTypes) {
+                $code = strtolower($appointment->attend_type);
+
+                $appointment->attend_type_full_name = $attendTypes[$code] ?? null;
+
                 return $appointment;
             });
 
