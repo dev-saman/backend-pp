@@ -1,4 +1,4 @@
-name: Deploy Laravel App
+name: Deploy Laravel
 
 on:
   push:
@@ -7,35 +7,29 @@ on:
 
 jobs:
   deploy:
-    runs-on: ["self-hosted","linux","x64","production"]
+    runs-on: [self-hosted, linux, x64]
 
     steps:
-      - name: Deploy locally
+      - name: Deploy Laravel
         run: |
-          set -e
-
           cd /var/www/html/admin-panel
 
-          echo "Fixing git safe directory..."
-          git config --global --add safe.directory /var/www/html/admin-panel
-
-          echo "Fetching latest code..."
           git fetch origin
-
-          echo "Resetting local changes..."
           git reset --hard origin/main
 
-          echo "Cleaning untracked files..."
-          git clean -fd
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
-          echo "Installing dependencies..."
-          composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
+          npm ci
+          npm run build
 
-          echo "Running migrations..."
           php artisan migrate --force
 
-          echo "Clearing cache..."
-          php artisan optimize:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
 
-          echo "Restarting queue..."
-          php artisan queue:restart
+          php artisan storage:link || true
+
+          sudo chown -R akmal:www-data /var/www/html/admin-panel
+          sudo chmod -R 775 /var/www/html/admin-panel/storage
+          sudo chmod -R 775 /var/www/html/admin-panel/bootstrap/cache
