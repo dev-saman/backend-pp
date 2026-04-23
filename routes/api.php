@@ -24,7 +24,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('logout',[AuthApiController::class, 'logout']);
 });
 
-Route::middleware(['auth:api', 'role.api:patient,admin'])->group(function (){
+Route::middleware(['auth:api', 'role.api:User,Admin'])->group(function (){
     Route::get('get-patient-appointments',[PatientAppointmentController::class,'getPatientAppointments']);
     Route::get('get-appointment-departments',[PatientAppointmentController::class, 'getAppointmentDepartments']);
     Route::get('get-department-speciality-with-physician',[PatientAppointmentController::class, 'getDepartmentSpecialityWithPhysician']);
