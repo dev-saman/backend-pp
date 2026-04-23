@@ -37,8 +37,7 @@ class AuthApiController extends Controller
                 'success' => true,
                 'message' => 'Login successful',
                 'token' => $token,
-            ],200);
-
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -57,7 +56,6 @@ class AuthApiController extends Controller
                 'success' => true,
                 'message' => 'Logout successful'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

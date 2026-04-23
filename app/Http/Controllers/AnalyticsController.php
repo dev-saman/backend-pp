@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\Funnel;
-use App\Models\Patient; 
+use App\Models\Patient;
 use App\Models\PatientFunnelAssignment;
 use App\Models\FormSubmission;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class AnalyticsController extends Controller
 {
     public function __construct()
-    { 
+    {
         $this->middleware('auth');
     }
 
