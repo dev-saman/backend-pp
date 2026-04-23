@@ -71,7 +71,7 @@ class PatientController extends Controller
             // }
 
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'patient_details' => $patientDetails,
                 // 'case_details' => $case->toArray(),
                 // 'med_auth_details' => $med_auth->toArray(),
@@ -81,7 +81,7 @@ class PatientController extends Controller
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Patient not found'
             ], 404);
 
@@ -89,7 +89,7 @@ class PatientController extends Controller
             Log::error("Error fetching patient details: " . $e->getMessage());
 
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => $e->getMessage()
             ],500);
         }

@@ -90,7 +90,7 @@ class PatientAppointmentController extends Controller
     //         }
 
     //         return response()->json([
-    //             'status' => 'success',
+    //             'success' => true,
     //             'upcoming_count' => count($upcoming),
     //             'past_count' => count($past),
     //             'upcoming_appointments' => $upcoming,
@@ -99,7 +99,7 @@ class PatientAppointmentController extends Controller
 
     //     } catch (ModelNotFoundException $e) {
     //         return response()->json([
-    //             'status' => 'error',
+    //             'success' => false,
     //             'message' => 'Patient not found'
     //         ], 404);
 
@@ -107,7 +107,7 @@ class PatientAppointmentController extends Controller
     //         Log::error("Error fetching patient appointments: " . $e->getMessage());
 
     //         return response()->json([
-    //             'status' => 'error',
+    //             'success' => false,
     //             'message' => 'Something went wrong'
     //         ],500);
     //     }
@@ -138,7 +138,7 @@ class PatientAppointmentController extends Controller
 
             if ($medAuthIds->isEmpty()) {
                 return response()->json([
-                    'status' => 'success',
+                    'success' => true,
                     'message' => 'No MedAuth records found',
                     'upcoming_count' => 0,
                     'past_count' => 0,
@@ -158,7 +158,7 @@ class PatientAppointmentController extends Controller
 
             if ($appointments->isEmpty()) {
                 return response()->json([
-                    'status' => 'success',
+                    'success' => true,
                     'message' => 'No appointments found',
                     'upcoming_count' => 0,
                     'past_count' => 0,
@@ -190,7 +190,7 @@ class PatientAppointmentController extends Controller
             $past = $appointments->where('attend_date', '<', $today)->values();
 
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'upcoming_count' => $upcoming->count(),
                 'past_count' => $past->count(),
                 'upcoming_appointments' => $upcoming,
@@ -199,7 +199,7 @@ class PatientAppointmentController extends Controller
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Patient not found'
             ], 404);
 
@@ -207,7 +207,7 @@ class PatientAppointmentController extends Controller
             Log::error("Error fetching patient appointments: " . $e->getMessage());
 
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Something went wrong'
             ],500);
         }
@@ -222,13 +222,13 @@ class PatientAppointmentController extends Controller
                             ->pluck('city');
             
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'departments' => $departments
             ], 200);
         } catch (\Throwable $e) {
             Log::error("Error fetching appointment departments: " . $e->getMessage());
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Something went wrong'
             ], 500);
         }
@@ -240,7 +240,7 @@ class PatientAppointmentController extends Controller
 
         if (!$department) {
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'message' => 'Department parameter is required',
                 'data' => []
             ], 400);
@@ -254,7 +254,7 @@ class PatientAppointmentController extends Controller
 
         if ($rows->isEmpty()) {
             return response()->json([
-                'status' => true,
+                'success' => true,
                 'count' => 0,
                 'data' => []
             ]);
@@ -593,7 +593,7 @@ class PatientAppointmentController extends Controller
          | 7. Return JSON Response
          |-------------------------------------*/
         $responseData = [
-            'status' => true,
+            'success' => true,
             'count' => $finalData->count(),
             'data' => $finalData
         ];
@@ -607,7 +607,7 @@ class PatientAppointmentController extends Controller
 
         if (empty($department) || empty($providerId)) {
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'message' => 'Department and Provider parameters are required',
                 'data' => []
             ], 400);
@@ -626,14 +626,14 @@ class PatientAppointmentController extends Controller
             }
 
             return response()->json([
-                'status' => true,
+                'success' => true,
                 'count' => $companies->count(),
                 'companies' => $companies
             ], 200);
         }catch (\Throwable $e) {
             Log::error("Error fetching companies by location and department: " . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'message' => 'Something went wrong',
                 'data' => []
             ], 500);
@@ -673,7 +673,7 @@ class PatientAppointmentController extends Controller
 
             if ($validator->fails()) {
                 return response()->json([
-                    'status' => false,
+                    'success' => false,
                     'message' => 'Validation errors',
                     'errors' => $validator->errors()
                 ], 422);
@@ -720,7 +720,7 @@ class PatientAppointmentController extends Controller
             ]);
 
             return response()->json([
-                'status' => true,
+                'success' => true,
                 'message' => 'Appointment request submitted successfully',
                 'appointment_id' => $appointment->id
             ],200);
@@ -728,7 +728,7 @@ class PatientAppointmentController extends Controller
         }catch(\Throwable $e){
             Log::error("Error scheduling patient appointment: " . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'success' => false,
                 'error' => $e->getMessage(),
                 'message' => 'Something went wrong',
             ], 500);

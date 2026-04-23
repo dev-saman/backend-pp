@@ -148,7 +148,7 @@ class ClinicalController extends Controller
                     if (!$response->successful()) {
                         $results[] = [
                             'url' => $pdfUrl,
-                            'status' => false,
+                            'success' => false,
                             'error' => 'Download failed'
                         ];
                         continue;
@@ -159,14 +159,14 @@ class ClinicalController extends Controller
 
                     $results[] = [
                         'url' => $pdfUrl,
-                        'status' => true,
+                        'success' => true,
                         'savedUrl' => asset('assets/images/activecollab/pdf/' . $filename)
                     ];
 
                 } catch (\Exception $e) {
                     $results[] = [
                         'url' => $pdfUrl,
-                        'status' => false,
+                        'success' => false,
                         'error' => $e->getMessage()
                     ];
                 }
