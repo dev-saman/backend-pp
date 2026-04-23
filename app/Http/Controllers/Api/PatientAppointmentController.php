@@ -175,9 +175,9 @@ class PatientAppointmentController extends Controller
                         });
 
             // ✅ Map names
-            $appointments->transform(function ($appointment) use ($attendTypes) {
+            $appointments->transform(function ($appointment) use ($specialities, $attendTypes) {
+                $appointment->service_full_name = $specialities[$appointment->service] ?? null;
                 $code = strtolower($appointment->attend_type);
-
                 $appointment->attend_type_full_name = $attendTypes[$code] ?? null;
 
                 return $appointment;
