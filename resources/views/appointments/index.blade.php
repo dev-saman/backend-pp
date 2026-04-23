@@ -6,8 +6,6 @@
 
 @section('content')
 
-
-
 <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:14px 18px; margin-bottom:24px; display:flex; align-items:center; gap:10px; font-size:14px; color:#92400e;">
     <i class="fas fa-info-circle"></i>
     <span>Appointments are fetched from your external booking system. Configure <code>APPOINTMENT_API_URL</code> and <code>APPOINTMENT_API_KEY</code> in your <code>.env</code> file to connect to your live data.</span>
