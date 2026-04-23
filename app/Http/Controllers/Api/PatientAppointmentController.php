@@ -32,7 +32,7 @@ class PatientAppointmentController extends Controller
     //     try {
             
     //         $userDetails = auth()->user();
-    //         $patientId = $userDetails->patient_id ?? 10004619;
+    //         $patientId = $userDetails->patient_id;
     //         $caseId = $userDetails->case_id ?? 10004802;
 
     //         if (!$patientId || !$caseId) {
@@ -117,7 +117,7 @@ class PatientAppointmentController extends Controller
     {
         try {
             $user = auth()->user();
-            $patientId = $user->patient_id ?? 10004619;
+            $patientId = $user->patient_id;
 
             if (!$patientId) {
                 throw new \Exception("Patient ID is required", 400);

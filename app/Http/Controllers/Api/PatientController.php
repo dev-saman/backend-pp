@@ -20,7 +20,7 @@ class PatientController extends Controller
     {
         try {
             $userDetails = auth()->user();
-            $patient_id = $userDetails->patient_id ?? 10004619;
+            $patient_id = $userDetails->patient_id;
             // $case_id = $userDetails->case_id ?? 10004802;
 
             if (!$patient_id) {
