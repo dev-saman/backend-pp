@@ -126,6 +126,30 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'auth' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/auth/auth.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        'patient' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/patient/patient_details.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
+
+        'appointment' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/appointment/appointment.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 14,
+            'replace_placeholders' => true,
+        ],
     ],
 
 ];

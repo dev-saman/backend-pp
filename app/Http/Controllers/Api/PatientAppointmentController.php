@@ -116,6 +116,7 @@ class PatientAppointmentController extends Controller
     public function getPatientAppointments(): JsonResponse
     {
         try {
+            Log::channel('appointment')->info('Fetching patient appointments - Start');
             $user = auth()->user();
             $patientId = $user->patient_id;
 
@@ -125,6 +126,7 @@ class PatientAppointmentController extends Controller
 
             // ✅ Check patient exists
             AhcsPatient::findOrFail($patientId);
+            Log::channel('appointment')->info('Patient found', ['patient_id' => $patientId]);
 
             // ✅ Get all case IDs of patient
             $caseIds = AhcsCase::where('patient_id', $patientId)->pluck('id');
@@ -132,9 +134,11 @@ class PatientAppointmentController extends Controller
             if ($caseIds->isEmpty()) {
                 throw new \Exception("No cases found for this patient", 404);
             }
+            Log::channel('appointment')->info('Case IDs fetched', ['patient_id' => $patientId, 'case_ids' => $caseIds->toArray()]);
 
             // ✅ Get all MedAuth IDs for those cases
             $medAuthIds = AhcsMedAuth::whereIn('case_id', $caseIds)->pluck('id');
+            Log::channel('appointment')->info('MedAuth IDs fetched', ['patient_id' => $patientId, 'med_auth_ids' => $medAuthIds->toArray()]);
 
             if ($medAuthIds->isEmpty()) {
                 return response()->json([
@@ -155,6 +159,7 @@ class PatientAppointmentController extends Controller
                     'provider_id','provider_name','attend_date','time',
                     'end_time','length','attend_status','attend_notes'
                 ]);
+            Log::channel('appointment')->info('Appointments fetched', ['patient_id' => $patientId, 'appointment_count' => $appointments->count()]);
 
             if ($appointments->isEmpty()) {
                 return response()->json([
@@ -188,6 +193,7 @@ class PatientAppointmentController extends Controller
 
             $upcoming = $appointments->where('attend_date', '>=', $today)->values();
             $past = $appointments->where('attend_date', '<', $today)->values();
+            Log::channel('appointment')->info('Appointments split into upcoming and past', ['patient_id' => $patientId, 'upcoming_count' => $upcoming->count(), 'past_count' => $past->count()]);
 
             return response()->json([
                 'success' => true,
@@ -204,8 +210,7 @@ class PatientAppointmentController extends Controller
             ], 404);
 
         } catch (\Throwable $e) {
-            Log::error("Error fetching patient appointments: " . $e->getMessage());
-
+            Log::channel('appointment')->error("Error fetching patient appointments: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Something went wrong'

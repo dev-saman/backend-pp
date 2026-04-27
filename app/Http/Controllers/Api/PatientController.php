@@ -19,6 +19,10 @@ class PatientController extends Controller
     public function getPatientDetails(): JsonResponse
     {
         try {
+            Log::channel('patient')->info('Get Patient Details API hit', [
+                'user_id' => auth()->id()
+            ]);
+
             $userDetails = auth()->user();
             $patient_id = $userDetails->patient_id;
             // $case_id = $userDetails->case_id ?? 10004802;
@@ -33,6 +37,9 @@ class PatientController extends Controller
 
             // ✅ Use findOrFail (auto throw)
             $patient = AhcsPatient::findOrFail($patient_id);
+            Log::channel('patient')->info('Patient details fetched successfully', [
+                'patient_id' => $patient_id,
+            ]);
 
             $patientDetails = [
                 'id' => $patient->id,
@@ -70,6 +77,10 @@ class PatientController extends Controller
             //     throw new \Exception("WorkComp not found for the given patient", 404);
             // }
 
+            Log::channel('patient')->info('Patient details returned successfully', [
+                'patient_id' => $patient_id,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'patient_details' => $patientDetails,
@@ -86,7 +97,7 @@ class PatientController extends Controller
             ], 404);
 
         } catch (\Throwable $e) {
-            Log::error("Error fetching patient details: " . $e->getMessage());
+            Log::channel('patient')->error("Error fetching patient details: " . $e->getMessage());
 
             return response()->json([
                 'success' => false,
