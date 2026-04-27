@@ -10,6 +10,7 @@ class FunnelProgress extends Model
     protected $table = 'funnel_progress';
 
     protected $fillable = [
+        'user_id',
         'assignment_id',
         'patient_id',
         'funnel_id',
@@ -27,6 +28,14 @@ class FunnelProgress extends Model
         'submitted_at'  => 'datetime',
         'step_index'    => 'integer',
     ];
+
+    /**
+     * The admin user who owns / initiated this progress record.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function assignment(): BelongsTo
     {

@@ -210,6 +210,7 @@ class FunnelController extends Controller
             $formData = $request->input('form_' . $formId, []);
             if (!empty($formData)) {
                 FormSubmission::create([
+                    'user_id'    => auth()->id(),
                     'form_id'    => $formId,
                     'funnel_id'  => $funnel->id,
                     'data'       => $formData,

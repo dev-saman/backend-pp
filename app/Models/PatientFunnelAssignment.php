@@ -42,6 +42,18 @@ class PatientFunnelAssignment extends Model
         return $this->belongsTo(Funnel::class);
     }
 
+    /**
+     * The admin user who assigned this funnel.
+     * Consistent user() alias used across all three tables.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    /**
+     * The admin user who assigned this funnel (explicit named relationship).
+     */
     public function assignedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');

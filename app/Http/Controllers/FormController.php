@@ -194,6 +194,7 @@ class FormController extends Controller
         }
 
         FormSubmission::create([
+            'user_id'    => auth()->id(),
             'form_id'    => $form->id,
             'patient_id' => null,
             'data'       => $submittedData,

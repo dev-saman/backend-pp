@@ -283,6 +283,7 @@ class AssignmentController extends Controller
                 'form_id'       => $formId,
             ],
             [
+                'user_id'       => $assignment->assigned_by,
                 'patient_id'    => $assignment->patient_id,
                 'funnel_id'     => $assignment->funnel_id,
                 'step_index'    => $stepIndex,
@@ -322,6 +323,7 @@ class AssignmentController extends Controller
                 'form_id'       => $formId,
             ],
             [
+                'user_id'      => $assignment->assigned_by,
                 'patient_id'   => $assignment->patient_id,
                 'funnel_id'    => $assignment->funnel_id,
                 'step_index'   => $stepIndex,
@@ -334,6 +336,7 @@ class AssignmentController extends Controller
 
         // Also save to form_submissions for reporting
         FormSubmission::create([
+            'user_id'    => $assignment->assigned_by,
             'form_id'    => $formId,
             'patient_id' => $assignment->patient_id,
             'funnel_id'  => $assignment->funnel_id,
