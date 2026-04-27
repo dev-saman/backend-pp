@@ -31,9 +31,11 @@ Route::middleware(['auth:api', 'role.api:User'])->group(function (){
 
     Route::get('get-company-by-department-and-provider',[PatientAppointmentController::class, 'getCompanyByDepartmentAndProvider']);
     Route::post('schedule-patient-appointment/{userName}/{caseId}',[PatientAppointmentController::class, 'schedulePatientAppointment']);
-    Route::get('get-patient-submited-form-data/{patientId}',[ClinicalController::class, 'getPatientSubmitedFormData']);
+    Route::get('get-patient-submited-form-data/{patientId}',[ClinicalController::class, 'getPatientSubmitedFormData']); // old platform form data
     Route::post('download-patient-submited-form-pdf',[ClinicalController::class, 'downloadPatientSubmitedFormPdf']);
     Route::get('view-patient-submited-form/{formValueId}',[ClinicalController::class, 'viewPatientSubmitedFormPdf']);
     Route::get('get-patient-details',[PatientController::class, 'getPatientDetails']);
+    Route::get('get-patient-form-data',[ClinicalController::class, 'getPatientFormData']); // new platform form data
+    
 });
 

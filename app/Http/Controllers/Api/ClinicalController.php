@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
+use App\Models\FormSubmission;
 use Illuminate\Support\Facades\Validator;
 
 class ClinicalController extends Controller
@@ -203,6 +204,27 @@ class ClinicalController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching PDF data'
+            ], 500);
+        }
+    }
+
+    public function getPatientFormData(){
+        try{
+            $formSubmission = FormSubmission::with('form')
+                            ->where('patient_id', auth()->user()->patient_id)
+                            // ->where('status', 'active')
+                            ->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $formSubmission
+            ], 200);
+
+        }catch(\Throwable $e){
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Error fetching patient form data'
             ], 500);
         }
     }
