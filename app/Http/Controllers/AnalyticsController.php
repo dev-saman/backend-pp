@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\Funnel;
-use App\Models\AhcsPatient;
+use App\Models\Patient;
 use App\Models\PatientFunnelAssignment;
 use App\Models\FormSubmission;
 use Illuminate\Http\Request;
@@ -123,8 +123,8 @@ class AnalyticsController extends Controller
         $toDate   = \Carbon\Carbon::parse($to)->endOfDay();
 
         // Overall counts
-        $totalPatients    = AhcsPatient::count();
-        $newPatients      = AhcsPatient::whereBetween('created_at', [$fromDate, $toDate])->count();
+        $totalPatients    = Patient::count();
+        $newPatients      = Patient::whereBetween('created_at', [$fromDate, $toDate])->count();
         $totalAssignments = PatientFunnelAssignment::count();
         $newAssignments   = PatientFunnelAssignment::whereBetween('created_at', [$fromDate, $toDate])->count();
         $totalSubmissions = FormSubmission::count();
@@ -167,8 +167,8 @@ class AnalyticsController extends Controller
             ->get();
 
         // Most active patients
-        $topPatients = AhcsPatient::withCount(['formSubmissions', 'assignments'])
-            ->orderBy('form_submissions_count', 'desc')
+        $topPatients = Patient::withCount(['submissions', 'assignments'])
+            ->orderBy('submissions_count', 'desc')
             ->take(8)
             ->get();
 

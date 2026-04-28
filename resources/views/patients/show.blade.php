@@ -5,9 +5,11 @@
 @section('page-subtitle', 'MRN: ' . $patient->mrn)
 
 @section('header-actions')
-    {{-- Patients are read-only from the external AHCS database --}}
+    <a href="{{ route('patients.edit', $patient) }}" class="btn btn-secondary">
+        <i class="fas fa-edit"></i> Edit
+    </a>
     <a href="{{ route('patients.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Patients
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 @endsection
 
