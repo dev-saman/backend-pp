@@ -51,8 +51,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // ---- Patients ----
-    Route::resource('patients', PatientController::class);
+    // ---- Patients (read-only — data comes from external AHCS database) ----
+    Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
+    Route::get('/patients/{patient}', [PatientController::class, 'show'])->name('patients.show');
 
     // ---- Appointments (read-only, fetched from external system) ----
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');

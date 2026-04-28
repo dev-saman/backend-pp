@@ -5,9 +5,7 @@
 @section('page-subtitle', 'Manage and view all patient records')
 
 @section('header-actions')
-    <a href="{{ route('patients.create') }}" class="btn btn-primary">
-        <i class="fas fa-user-plus"></i> Add Patient
-    </a>
+    {{-- Patients are read-only from the external AHCS database --}}
 @endsection
 
 @section('content')
@@ -70,29 +68,16 @@
                         </span>
                     </td>
                     <td>
-                        <div style="display:flex; gap:8px;">
-                            <a href="{{ route('patients.show', $patient) }}" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('patients.edit', $patient) }}" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form method="POST" action="{{ route('patients.destroy', $patient) }}" onsubmit="return confirm('Are you sure?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
+                        <a href="{{ route('patients.show', $patient) }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
                     </td>
                 </tr>
                 @empty
                 <tr>
                     <td colspan="7" style="text-align:center; padding:48px; color:#9ca3af;">
                         <i class="fas fa-users" style="font-size:36px; display:block; margin-bottom:12px;"></i>
-                        No patients found.
-                        <a href="{{ route('patients.create') }}" style="color:#C8102E;">Add your first patient</a>
+                        No patients found in the AHCS system.
                     </td>
                 </tr>
                 @endforelse

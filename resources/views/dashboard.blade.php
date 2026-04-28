@@ -63,7 +63,7 @@
         @if($recentPatients->isEmpty())
             <div class="card-body" style="text-align:center; color:#9ca3af; padding:40px;">
                 <i class="fas fa-users" style="font-size:32px; margin-bottom:12px; display:block;"></i>
-                No patients yet. <a href="{{ route('patients.create') }}" style="color:#C8102E;">Add one</a>
+                No patients found in the AHCS system.
             </div>
         @else
             <div class="table-container">
@@ -148,8 +148,8 @@
     </div>
     <div class="card-body">
         <div style="display:flex; gap:16px; flex-wrap:wrap;">
-            <a href="{{ route('patients.create') }}" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> Add Patient
+            <a href="{{ route('patients.index') }}" class="btn btn-primary">
+                <i class="fas fa-users"></i> View Patients
             </a>
             <a href="{{ route('forms.create') }}" class="btn btn-secondary">
                 <i class="fas fa-plus"></i> Create Form
