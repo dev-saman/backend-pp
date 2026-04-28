@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\AhcsPatient;
 
 class FunnelProgress extends Model
 {
@@ -42,9 +43,13 @@ class FunnelProgress extends Model
         return $this->belongsTo(PatientFunnelAssignment::class, 'assignment_id');
     }
 
+    /**
+     * The AHCS patient this progress record belongs to.
+     * patient_id references ahcs_patients.id on the external AHCS database.
+     */
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
     }
 
     public function funnel(): BelongsTo
