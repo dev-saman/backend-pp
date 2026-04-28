@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\Funnel;
-use App\Models\Patient;
+use App\Models\AhcsPatient;
 use App\Models\PatientFunnelAssignment;
 use App\Models\FunnelProgress;
 use App\Models\FormSubmission;
@@ -34,7 +34,7 @@ class AssignmentController extends Controller
 
         $assignments = $query->paginate(20)->withQueryString();
         $funnels     = Funnel::whereIn('status', ['active', 'draft'])->orderBy('name')->get();
-        $patients    = Patient::orderBy('first_name')->get();
+        $patients    = AhcsPatient::orderBy('first_name')->get();
 
         return view('assignments.index', compact('assignments', 'funnels', 'patients'));
     }
@@ -45,7 +45,7 @@ class AssignmentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'patient_id' => 'required|exists:patients,id',
+            'patient_id' => 'required|exists:ahcs.ahcs_patients,id',
             'funnel_id'  => 'required|exists:funnels,id',
             'note'       => 'nullable|string|max:500',
             'expires_at' => 'nullable|date|after:now',
@@ -188,7 +188,7 @@ class AssignmentController extends Controller
     /**
      * All funnels assigned to a specific patient
      */
-    public function patientProgress(Patient $patient)
+    public function patientProgress(AhcsPatient $patient)
     {
         $assignments = PatientFunnelAssignment::with(['funnel', 'progress.form', 'assignedBy'])
             ->where('patient_id', $patient->id)

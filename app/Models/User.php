@@ -3,16 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\AhcsPatient;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
+        'patient_id',
         'name',
         'email',
         'password',
@@ -44,30 +47,37 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === 'super_admin';
     }
 
-    public function forms()
+    /**
+     * The AHCS patient record linked to this user account.
+     * patient_id stores the ahcs_patients.id from the external AHCS database.
+     * Returns null for admin users who are not patients.
+     */
+    public function ahcsPatient(): BelongsTo
+    {
+        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
+    }
+
+    /**
+     * Forms created by this admin user.
+     */
+    public function forms(): HasMany
     {
         return $this->hasMany(Form::class, 'created_by');
     }
 
-    public function funnels()
+    /**
+     * Funnels created by this admin user.
+     */
+    public function funnels(): HasMany
     {
         return $this->hasMany(Funnel::class, 'created_by');
     }
 
-    public function getJWTIdentifier()
+    /**
+     * Funnel assignments made by this admin user.
+     */
+    public function assignments(): HasMany
     {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [
-            'id' => $this->id,
-            // 'patient_id' => $this->patient_id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'role' => $this->role,
-        ];
+        return $this->hasMany(PatientFunnelAssignment::class, 'assigned_by');
     }
 }
