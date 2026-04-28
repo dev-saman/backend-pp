@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Message;
-use App\Models\AhcsPatient;
+use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,19 +20,19 @@ class MessageController extends Controller
 
     public function create()
     {
-        $patients = AhcsPatient::where('status', 'active')->orderBy('first_name')->get();
+        $patients = Patient::where('status', 'active')->orderBy('first_name')->get();
         return view('messages.create', compact('patients'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'patient_id' => 'required|exists:ahcs.ahcs_patients,id',
+            'patient_id' => 'required|exists:patients,id',
             'subject'    => 'required|string|max:255',
             'body'       => 'required|string',
             'category'   => 'nullable|string|max:50',
         ]);
-        $patient = AhcsPatient::findOrFail($validated['patient_id']);
+        $patient = Patient::findOrFail($validated['patient_id']);
         Message::create([
             'patient_id'  => $patient->id,
             'sender_name' => Auth::user()->name,

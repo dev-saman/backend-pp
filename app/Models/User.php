@@ -3,19 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\AhcsPatient;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'patient_id',
         'name',
         'email',
         'password',
@@ -47,37 +44,30 @@ class User extends Authenticatable
         return $this->role === 'super_admin';
     }
 
-    /**
-     * The AHCS patient record linked to this user account.
-     * patient_id stores the ahcs_patients.id from the external AHCS database.
-     * Returns null for admin users who are not patients.
-     */
-    public function ahcsPatient(): BelongsTo
-    {
-        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
-    }
-
-    /**
-     * Forms created by this admin user.
-     */
-    public function forms(): HasMany
+    public function forms()
     {
         return $this->hasMany(Form::class, 'created_by');
     }
 
-    /**
-     * Funnels created by this admin user.
-     */
-    public function funnels(): HasMany
+    public function funnels()
     {
         return $this->hasMany(Funnel::class, 'created_by');
     }
 
-    /**
-     * Funnel assignments made by this admin user.
-     */
-    public function assignments(): HasMany
+    public function getJWTIdentifier()
     {
-        return $this->hasMany(PatientFunnelAssignment::class, 'assigned_by');
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'id' => $this->id,
+            // 'patient_id' => $this->patient_id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'role' => $this->role,
+        ];
     }
 }

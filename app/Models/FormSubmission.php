@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\AhcsPatient;
 
 class FormSubmission extends Model
 {
@@ -35,13 +34,9 @@ class FormSubmission extends Model
         return $this->belongsTo(Form::class);
     }
 
-    /**
-     * The AHCS patient who submitted this form.
-     * patient_id references ahcs_patients.id on the external AHCS database.
-     */
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
+        return $this->belongsTo(Patient::class);
     }
 
     public function funnel(): BelongsTo
