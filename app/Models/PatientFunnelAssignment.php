@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\AhcsPatient;
 
 class PatientFunnelAssignment extends Model
 {
@@ -33,13 +32,9 @@ class PatientFunnelAssignment extends Model
         'forms_total'      => 'integer',
     ];
 
-    /**
-     * The AHCS patient this funnel is assigned to.
-     * patient_id references ahcs_patients.id on the external AHCS database.
-     */
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
+        return $this->belongsTo(Patient::class);
     }
 
     public function funnel(): BelongsTo

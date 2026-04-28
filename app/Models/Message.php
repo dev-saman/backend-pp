@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\AhcsPatient;
 
 class Message extends Model
 {
@@ -23,39 +20,22 @@ class Message extends Model
         'is_read'        => 'boolean',
     ];
 
-    // -------------------------------------------------------
-    // Relationships
-    // -------------------------------------------------------
-
-    /**
-     * The AHCS patient this message belongs to.
-     * patient_id references ahcs_patients.id on the external AHCS database.
-     */
-    public function patient(): BelongsTo
+    public function patient()
     {
-        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
+        return $this->belongsTo(Patient::class);
     }
 
-    /**
-     * The admin user who sent / manages this message.
-     */
-    public function admin(): BelongsTo
+    public function admin()
     {
         return $this->belongsTo(User::class, 'admin_id');
     }
 
-    /**
-     * Child reply messages in the same thread.
-     */
-    public function replies(): HasMany
+    public function replies()
     {
         return $this->hasMany(Message::class, 'parent_id')->orderBy('created_at');
     }
 
-    /**
-     * The parent message this is a reply to.
-     */
-    public function parent(): BelongsTo
+    public function parent()
     {
         return $this->belongsTo(Message::class, 'parent_id');
     }
