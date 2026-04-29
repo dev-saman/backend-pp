@@ -76,7 +76,6 @@ class AuthApiController extends Controller
             ]);
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
                 'message' => 'Something went wrong'
             ], 500);
         }
@@ -110,7 +109,6 @@ class AuthApiController extends Controller
             ]);
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
                 'message' => 'Failed to logout'
             ], 500);
         }
