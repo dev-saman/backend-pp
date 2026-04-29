@@ -110,6 +110,7 @@ class AuthApiController extends Controller
             ]);
             return response()->json([
                 'success' => false,
+                'error' => $e->getMessage(),
                 'message' => 'Failed to logout'
             ], 500);
         }
