@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('page-title', 'Users')
+@section('page-subtitle', 'Manage and view all user accounts')
 
 @section('content')
 <style>
@@ -76,14 +77,6 @@
 @if(session('error'))
 <span id="flash-error" data-msg="{{ session('error') }}" style="display:none;"></span>
 @endif
-
-<div style="padding: 8px 0 16px;">
-    <span style="color:#9ca3af; font-size:13px;">
-        <a href="{{ route('dashboard') }}" style="color:#7c3aed; text-decoration:none;">Dashboard</a>
-        <span style="margin:0 6px;">›</span>
-        <span>Users</span>
-    </span>
-</div>
 
 <div class="card" style="border-radius:12px; box-shadow:0 1px 6px rgba(0,0,0,0.07); background:#fff; padding:24px;">
 
