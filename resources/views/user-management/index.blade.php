@@ -69,7 +69,7 @@
 {{-- Toast container --}}
 <div id="toast-container"></div>
 
-{{-- Hidden flash messages for JS toast --}}
+{{-- Hidden flash messages for JS toast only (no inline banners) --}}
 @if(session('success'))
 <span id="flash-success" data-msg="{{ session('success') }}" style="display:none;"></span>
 @endif
@@ -117,7 +117,6 @@
         <table style="width:100%; border-collapse:collapse; font-size:14px;">
             <thead>
                 <tr style="border-bottom:2px solid #f3f4f6;">
-                    <th style="padding:10px 14px; text-align:left; color:#6b7280; font-weight:600; white-space:nowrap;">NO</th>
                     <th style="padding:10px 14px; text-align:left; color:#6b7280; font-weight:600; white-space:nowrap;">NAME <i class="fas fa-sort" style="font-size:11px; opacity:0.5;"></i></th>
                     <th style="padding:10px 14px; text-align:left; color:#6b7280; font-weight:600; white-space:nowrap;">EMAIL <i class="fas fa-sort" style="font-size:11px; opacity:0.5;"></i></th>
                     <th style="padding:10px 14px; text-align:left; color:#6b7280; font-weight:600; white-space:nowrap;">ROLE <i class="fas fa-sort" style="font-size:11px; opacity:0.5;"></i></th>
@@ -128,7 +127,6 @@
             <tbody>
                 @forelse($users as $index => $user)
                 <tr style="border-bottom:1px solid #f3f4f6;" id="user-row-{{ $user->id }}">
-                    <td style="padding:14px 14px; color:#374151;">{{ $users->firstItem() + $index }}</td>
                     <td style="padding:14px 14px; color:#111827; font-weight:500;">{{ $user->name }}</td>
                     <td style="padding:14px 14px; color:#374151;">{{ $user->email }}</td>
                     <td style="padding:14px 14px;">
@@ -183,7 +181,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" style="padding:40px; text-align:center; color:#9ca3af;">No users found.</td>
+                    <td colspan="5" style="padding:40px; text-align:center; color:#9ca3af;">No users found.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -344,6 +342,27 @@ var COUNTRY_CODES = [
     </div>
 </div>
 
+{{-- ===== DELETE CONFIRMATION MODAL ===== --}}
+<div id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10001; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:14px; width:100%; max-width:400px; padding:32px 28px; box-shadow:0 12px 40px rgba(0,0,0,0.2); margin:20px; text-align:center;">
+        <div style="width:60px; height:60px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+            <i class="fas fa-trash" style="font-size:24px; color:#ef4444;"></i>
+        </div>
+        <h3 style="margin:0 0 8px; font-size:18px; font-weight:700; color:#111827;">Delete User</h3>
+        <p style="margin:0 0 24px; font-size:14px; color:#6b7280;">Are you sure you want to delete this user? This action cannot be undone.</p>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button type="button" onclick="cancelDelete()"
+                style="padding:10px 28px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; color:#374151; font-size:14px; font-weight:600; cursor:pointer;">
+                Cancel
+            </button>
+            <button type="button" onclick="confirmDelete()"
+                style="padding:10px 28px; background:#ef4444; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">
+                Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ── Toast (pure JS) ───────────────────────────────────────────────────────────
 function showToast(message, type) {
@@ -456,23 +475,34 @@ function toggleStatus(userId, checkbox) {
 }
 
 // ── Delete User ───────────────────────────────────────────────────────────────
+var _deleteUserId = null;
 function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    fetch('/user-management/' + userId, {
+    _deleteUserId = userId;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+function confirmDelete() {
+    if (!_deleteUserId) return;
+    document.getElementById('deleteModal').style.display = 'none';
+    fetch('/user-management/' + _deleteUserId, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.status === 'success') {
-            var row = document.getElementById('user-row-' + userId);
+            var row = document.getElementById('user-row-' + _deleteUserId);
             if (row) row.remove();
             showToast('User deleted successfully.', 'success');
         } else {
             showToast(data.message || 'Could not delete user.', 'error');
         }
+        _deleteUserId = null;
     })
-    .catch(function() { showToast('Network error.', 'error'); });
+    .catch(function() { showToast('Network error.', 'error'); _deleteUserId = null; });
+}
+function cancelDelete() {
+    _deleteUserId = null;
+    document.getElementById('deleteModal').style.display = 'none';
 }
 
 // ── Create Modal ──────────────────────────────────────────────────────────────
@@ -537,5 +567,6 @@ document.getElementById('createForm').addEventListener('submit', function(e) {
 // ── Close on backdrop click ───────────────────────────────────────────────────
 document.getElementById('createModal').addEventListener('click', function(e) { if (e.target === this) closeCreateModal(); });
 document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+document.getElementById('deleteModal').addEventListener('click', function(e) { if (e.target === this) cancelDelete(); });
 </script>
 @endsection
