@@ -8,6 +8,7 @@ use App\Models\UserSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthApiController extends Controller
 {
@@ -47,9 +48,12 @@ class AuthApiController extends Controller
             }
             // ✅ Get logged-in user
             $user = Auth::guard('api')->user();
+            $payload = JWTAuth::setToken($token)->getPayload();
+            $jwtId = $payload->get('jti');
 
             UserSession::create([
                 'user_id' => $user->id,
+                'jwt_id'       => $jwtId,
                 'token' => $token,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
