@@ -11,11 +11,18 @@
     </span>
 </div>
 
+{{-- Flash messages --}}
+@if(session('success'))
+<div class="alert alert-success" style="margin-bottom:16px;"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+<div class="alert alert-danger" style="margin-bottom:16px;"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
+@endif
+
 <div class="card" style="border-radius:12px; box-shadow:0 1px 6px rgba(0,0,0,0.07); background:#fff; padding:24px;">
 
     {{-- Top Controls --}}
     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
-        {{-- Left: entries per page + create --}}
         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
             <form method="GET" action="{{ route('user-management.index') }}" id="perPageForm" style="display:flex; align-items:center; gap:8px;">
                 <input type="hidden" name="search" value="{{ $search }}">
@@ -33,7 +40,6 @@
             </a>
         </div>
 
-        {{-- Right: search --}}
         <form method="GET" action="{{ route('user-management.index') }}" style="display:flex; align-items:center; gap:8px;">
             <input type="hidden" name="per_page" value="{{ $perPage }}">
             <input type="text" name="search" value="{{ $search }}" placeholder="Search..."
@@ -62,7 +68,7 @@
                     <td style="padding:14px 14px; color:#374151;">{{ $user->email }}</td>
                     <td style="padding:14px 14px;">
                         @php
-                            $roleLabel = ucfirst($user->role ?? 'user');
+                            $roleLabel = ucfirst(str_replace('_', ' ', $user->role ?? 'user'));
                             $roleColor = in_array(strtolower($user->role), ['admin','super_admin']) ? '#7c3aed' : '#6b7280';
                         @endphp
                         <span style="background:{{ $roleColor }}; color:#fff; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:600;">
@@ -70,7 +76,6 @@
                         </span>
                     </td>
                     <td style="padding:14px 14px;">
-                        {{-- Toggle switch --}}
                         <label class="toggle-switch" style="cursor:pointer; position:relative; display:inline-block; width:44px; height:24px;">
                             <input type="checkbox" {{ $user->is_active ? 'checked' : '' }}
                                 onchange="toggleStatus({{ $user->id }}, this)"
@@ -82,8 +87,16 @@
                         </label>
                     </td>
                     <td style="padding:14px 14px; text-align:center; white-space:nowrap;">
-                        {{-- Edit --}}
-                        <a href="#" onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ addslashes($user->email) }}', '{{ $user->role }}', '{{ $user->phone }}')"
+                        {{-- Edit button — passes all user data --}}
+                        <a href="#" onclick="openEditModal(
+                                {{ $user->id }},
+                                '{{ addslashes($user->name) }}',
+                                '{{ addslashes($user->email) }}',
+                                '{{ $user->role }}',
+                                '{{ addslashes($user->phone ?? '') }}',
+                                '{{ addslashes($user->country_code ?? '') }}',
+                                '{{ $user->patient_id ?? '' }}'
+                            )"
                             style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; background:#7c3aed; color:#fff; border-radius:6px; margin-right:6px; text-decoration:none;" title="Edit">
                             <i class="fas fa-edit" style="font-size:13px;"></i>
                         </a>
@@ -109,7 +122,6 @@
         </table>
     </div>
 
-    {{-- Pagination --}}
     @if($users->hasPages())
     <div style="margin-top:16px; display:flex; justify-content:flex-end;">
         {{ $users->links() }}
@@ -119,8 +131,11 @@
 
 {{-- ===== CREATE MODAL ===== --}}
 <div id="createModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:28px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
-        <h2 style="margin:0 0 20px; font-size:18px; font-weight:700; color:#111827;">Create User</h2>
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Create User</h2>
+            <button onclick="closeCreateModal()" style="background:none; border:none; cursor:pointer; color:#6b7280; font-size:20px; line-height:1;">×</button>
+        </div>
         <form method="POST" action="{{ route('user-management.store') }}">
             @csrf
             <div style="margin-bottom:14px;">
@@ -134,28 +149,50 @@
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone</label>
-                <input type="text" name="phone" placeholder="Phone number"
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Password</label>
+                <input type="password" name="password" required placeholder="Password" id="createPassword"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <p style="font-size:12px; color:#6b7280; margin:6px 0 0;">Password must be at least 8 characters and include:</p>
+                <ul style="font-size:12px; color:#6b7280; margin:4px 0 0 18px; padding:0;">
+                    <li>One uppercase letter</li>
+                    <li>One lowercase letter</li>
+                    <li>One number</li>
+                    <li>One special character</li>
+                </ul>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Confirm Password</label>
+                <input type="password" name="password_confirmation" placeholder="Enter confirm password"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Country Code</label>
+                <select name="country_code" id="createCountryCode"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                    <option value="">Select country code</option>
+                    @foreach($countryCodes as $cc)
+                        <option value="{{ $cc['code'] }}">{{ $cc['code'] }} {{ $cc['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone Number</label>
+                <input type="text" name="phone" placeholder="Enter phone Number"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:20px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Role</label>
                 <select name="role" style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                     <option value="admin">Admin</option>
-                    <option value="user" selected>User</option>
+                    <option value="user" selected>User (Patient)</option>
                     <option value="super_admin">Super Admin</option>
                 </select>
             </div>
-            <div style="margin-bottom:20px;">
-                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Password</label>
-                <input type="password" name="password" required placeholder="Password"
-                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
-            </div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button type="button" onclick="closeCreateModal()"
-                    style="padding:9px 20px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; color:#374151; font-size:14px; cursor:pointer;">Cancel</button>
+                    style="padding:9px 24px; border:1px solid #e5e7eb; border-radius:8px; background:#6b7280; color:#fff; font-size:14px; cursor:pointer;">Cancel</button>
                 <button type="submit"
-                    style="padding:9px 20px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Create</button>
+                    style="padding:9px 24px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Save</button>
             </div>
         </form>
     </div>
@@ -163,44 +200,92 @@
 
 {{-- ===== EDIT MODAL ===== --}}
 <div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:28px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
-        <h2 style="margin:0 0 20px; font-size:18px; font-weight:700; color:#111827;">Edit User</h2>
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:18px; font-weight:700; color:#111827;">Edit User</h2>
+            <button onclick="closeEditModal()" style="background:none; border:none; cursor:pointer; color:#6b7280; font-size:20px; line-height:1;">×</button>
+        </div>
         <form method="POST" id="editForm" action="">
             @csrf
             @method('PUT')
+
+            {{-- Name --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Name</label>
                 <input type="text" name="name" id="editName" required
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+
+            {{-- Email --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Email</label>
                 <input type="email" name="email" id="editEmail" required
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+
+            {{-- Password --}}
             <div style="margin-bottom:14px;">
-                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone</label>
-                <input type="text" name="phone" id="editPhone"
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Password</label>
+                <input type="password" name="password" id="editPassword" placeholder="Leave blank to keep current"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f0f4ff;">
+                <p style="font-size:12px; color:#6b7280; margin:6px 0 0;">Password must be at least 8 characters and include:</p>
+                <ul style="font-size:12px; color:#6b7280; margin:4px 0 0 18px; padding:0;">
+                    <li>One uppercase letter</li>
+                    <li>One lowercase letter</li>
+                    <li>One number</li>
+                    <li>One special character</li>
+                </ul>
+            </div>
+
+            {{-- Confirm Password --}}
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Confirm Password</label>
+                <input type="password" name="password_confirmation" id="editPasswordConfirm" placeholder="Enter confirm password"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+
+            {{-- Country Code --}}
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Country Code</label>
+                <select name="country_code" id="editCountryCode"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                    <option value="">Select country code</option>
+                    @foreach($countryCodes as $cc)
+                        <option value="{{ $cc['code'] }}">{{ $cc['code'] }} {{ $cc['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Phone Number --}}
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone Number</label>
+                <input type="text" name="phone" id="editPhone" placeholder="Enter phone Number"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+            </div>
+
+            {{-- Role --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Role</label>
-                <select name="role" id="editRole" style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <select name="role" id="editRole"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                     <option value="admin">Admin</option>
-                    <option value="user">User</option>
+                    <option value="user">User (Patient)</option>
                     <option value="super_admin">Super Admin</option>
                 </select>
             </div>
+
+            {{-- Patient ID (read-only) --}}
             <div style="margin-bottom:20px;">
-                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">New Password <span style="color:#9ca3af; font-weight:400;">(leave blank to keep current)</span></label>
-                <input type="password" name="password" placeholder="New password (optional)"
-                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Patient ID</label>
+                <input type="text" id="editPatientId" name="patient_id" readonly
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f9fafb; color:#6b7280; cursor:not-allowed;">
             </div>
+
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button type="button" onclick="closeEditModal()"
-                    style="padding:9px 20px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; color:#374151; font-size:14px; cursor:pointer;">Cancel</button>
+                    style="padding:9px 24px; border:1px solid #e5e7eb; border-radius:8px; background:#6b7280; color:#fff; font-size:14px; cursor:pointer;">Cancel</button>
                 <button type="submit"
-                    style="padding:9px 20px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Save Changes</button>
+                    style="padding:9px 24px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Save</button>
             </div>
         </form>
     </div>
@@ -230,7 +315,7 @@ function toggleStatus(userId, checkbox) {
                 knob.style.left = '3px';
             }
         } else {
-            checkbox.checked = !checkbox.checked; // revert
+            checkbox.checked = !checkbox.checked;
         }
     })
     .catch(() => { checkbox.checked = !checkbox.checked; });
@@ -266,11 +351,19 @@ function closeCreateModal() {
 }
 
 // ── Edit Modal ────────────────────────────────────────────────────────────────
-function openEditModal(id, name, email, role, phone) {
-    document.getElementById('editName').value  = name;
-    document.getElementById('editEmail').value = email;
-    document.getElementById('editPhone').value = phone || '';
-    document.getElementById('editRole').value  = role;
+function openEditModal(id, name, email, role, phone, countryCode, patientId) {
+    document.getElementById('editName').value         = name;
+    document.getElementById('editEmail').value        = email;
+    document.getElementById('editPhone').value        = phone || '';
+    document.getElementById('editRole').value         = role;
+    document.getElementById('editPatientId').value    = patientId || '';
+    document.getElementById('editPassword').value     = '';
+    document.getElementById('editPasswordConfirm').value = '';
+
+    // Set country code dropdown
+    const ccSelect = document.getElementById('editCountryCode');
+    ccSelect.value = countryCode || '';
+
     document.getElementById('editForm').action = `/user-management/${id}`;
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -278,7 +371,18 @@ function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
 }
 
-// Close modals on backdrop click
+// ── Password match validation on edit form ────────────────────────────────────
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    const pw  = document.getElementById('editPassword').value;
+    const cpw = document.getElementById('editPasswordConfirm').value;
+    if (pw && pw !== cpw) {
+        e.preventDefault();
+        alert('Passwords do not match.');
+        return false;
+    }
+});
+
+// ── Close modals on backdrop click ────────────────────────────────────────────
 document.getElementById('createModal').addEventListener('click', function(e) {
     if (e.target === this) closeCreateModal();
 });
