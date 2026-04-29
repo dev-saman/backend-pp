@@ -232,6 +232,7 @@ class UserManagementController extends Controller
             'role'         => 'required|in:admin,user,super_admin',
             'phone'        => 'nullable|string|max:30',
             'country_code' => 'nullable|string|max:10',
+            'patient_id'   => 'nullable|integer',
         ]);
 
         User::create([
@@ -241,6 +242,7 @@ class UserManagementController extends Controller
             'role'         => $this->formatRole($request->role),
             'phone'        => $request->phone,
             'country_code' => $request->country_code,
+            'patient_id'   => ($request->role === 'user' && $request->patient_id) ? $request->patient_id : null,
             'is_active'    => true,
         ]);
 

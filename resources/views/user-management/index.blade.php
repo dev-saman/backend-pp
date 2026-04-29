@@ -331,7 +331,10 @@ var COUNTRY_CODES = [
             </div>
             <div id="editPatientIdWrap" style="margin-bottom:20px; display:none;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Patient ID</label>
-                <input type="text" id="editPatientId" name="patient_id" style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f9fafb; color:#6b7280;">
+                <input type="text" id="editPatientId" name="patient_id" disabled
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f3f4f6; color:#9ca3af; cursor:not-allowed;"
+                    title="Patient ID cannot be changed here">
+                <p style="font-size:12px; color:#9ca3af; margin:4px 0 0;">Patient ID is read-only. It can only be set when creating a new user.</p>
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
                 <button type="button" onclick="closeEditModal()" style="padding:9px 24px; border:1px solid #e5e7eb; border-radius:8px; background:#6b7280; color:#fff; font-size:14px; cursor:pointer;">Cancel</button>
