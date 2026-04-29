@@ -521,6 +521,11 @@
             <i class="fas fa-th-large"></i> Dashboard
         </a>
 
+        <div class="nav-section-label">User Management</div>
+        <a href="{{ route('user-management.index') }}" class="nav-item {{ request()->routeIs('user-management.*') ? 'active' : '' }}">
+            <i class="fas fa-users-cog"></i> Users
+        </a>
+
         <div class="nav-section-label">Patients</div>
         <a href="{{ route('patients.index') }}" class="nav-item {{ request()->routeIs('patients.*') ? 'active' : '' }}">
             <i class="fas fa-users"></i> Patients

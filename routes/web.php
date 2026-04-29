@@ -90,8 +90,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/analytics/funnels', [AnalyticsController::class, 'funnels'])->name('analytics.funnels');
     Route::get('/analytics/forms', [AnalyticsController::class, 'forms'])->name('analytics.forms');
     Route::get('/analytics/reports', [AnalyticsController::class, 'reports'])->name('analytics.reports');
+    // ---- User Management ----
+    Route::get('/user-management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('user-management.index');
+    Route::post('/user-management', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('user-management.store');
+    Route::put('/user-management/{user}', [\App\Http\Controllers\UserManagementController::class, 'update'])->name('user-management.update');
+    Route::delete('/user-management/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])->name('user-management.destroy');
+    Route::post('/user-management/{user}/toggle-status', [\App\Http\Controllers\UserManagementController::class, 'toggleStatus'])->name('user-management.toggle-status');
 
-    // ---- Billing (read-only, fetched from external system) ----
+    // ---- Patients (read-only, fetched from external system) ----
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
     Route::get('/billing/{id}', [BillingController::class, 'show'])->name('billing.show');
 
