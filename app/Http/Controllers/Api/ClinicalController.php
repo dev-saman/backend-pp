@@ -15,11 +15,7 @@ class ClinicalController extends Controller
     {
         try {
             $patientId = auth()->user()->patient_id;
-            return response()->json([
-                'success' => true,
-                'message' => 'API hit successfully',
-                'patient_id' => $patientId
-            ], 200);
+            
             $url = "https://ptp.advantagehcs.com/api/submittedData/" . $patientId;
 
             $response = Http::timeout(30)
