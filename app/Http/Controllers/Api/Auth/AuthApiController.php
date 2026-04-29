@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\UserSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,6 @@ class AuthApiController extends Controller
     public function login(Request $request)
     {
         try {
-
             Log::channel('auth')->info('Login API hit', [
                 'email' => $request->email
             ]);
@@ -47,6 +47,18 @@ class AuthApiController extends Controller
             }
             // ✅ Get logged-in user
             $user = Auth::guard('api')->user();
+
+            UserSession::create([
+                'user_id' => $user->id,
+                'token' => $token,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'is_active' => 1,
+                'last_activity' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             Log::channel('auth')->info('Login successful', [
                 'user_id' => $user->id,
                 'email' => $user->email
@@ -72,6 +84,11 @@ class AuthApiController extends Controller
     public function logout(Request $request)
     {
         try {
+            $token = $request->bearerToken();
+            UserSession::where('token', $token)->update([
+                'is_active' => 0,
+            ]);
+
             $user = Auth::guard('api')->user();
             Log::channel('auth')->info('Logout API hit', [
                 'user_id' => $user->id ?? null

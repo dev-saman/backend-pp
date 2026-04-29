@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use App\Models\UserSession;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiRoleMiddleware
@@ -25,7 +26,27 @@ class ApiRoleMiddleware
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized - Invalid or missing token'  
+            ], 401);
+        }
+
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token not provided'
+            ], 401);
+        }
+
+        $session = UserSession::where('token', $token)
+            ->where('is_active', 1)
+            ->first();
+
+        if (!$session) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session expired or logged out'
             ], 401);
         }
 
