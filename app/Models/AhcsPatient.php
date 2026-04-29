@@ -9,8 +9,9 @@ class AhcsPatient extends Model
 {
     use HasFactory;
 
-    protected $table = 'ahcs_patients';
     protected $connection = 'ahcs';
+    protected $table = 'ahcs_patients';
+
     protected $primaryKey = 'id';
     public $timestamps = false;
 

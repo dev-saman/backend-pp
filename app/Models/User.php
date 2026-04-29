@@ -74,15 +74,23 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
+        public function patient()
+    {
+        return $this->belongsTo(AhcsPatient::class, 'patient_id', 'id');
+    }
+    
     public function getJWTCustomClaims()
     {
         return [
-            'id' => $this->id,
-            // 'patient_id' => $this->patient_id,
-            'name' => $this->name,
+            'id'    => $this->id,
+            'name'  => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'role' => $this->role,
+            'role'  => $this->role,
+
+            // 👇 Fetch from AHCS DB
+            'patient_name' => optional($this->patient)->patient_name,
         ];
     }
+
 }
