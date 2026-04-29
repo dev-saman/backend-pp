@@ -76,6 +76,7 @@ class AuthApiController extends Controller
             ]);
             return response()->json([
                 'success' => false,
+                'error' => $e->getMessage(),
                 'message' => 'Something went wrong'
             ], 500);
         }
