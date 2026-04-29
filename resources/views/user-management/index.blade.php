@@ -365,11 +365,13 @@ function openEditModal(id, name, email, role, phone, countryCode, patientId) {
     // Set role dropdown — normalise to lowercase to match option values
     const roleSelect = document.getElementById('editRole');
     const roleNorm   = (role || '').toLowerCase().trim();
-    roleSelect.value = roleNorm;
+    // Map capitalised DB values back to option values
+    const roleMap = { 'admin': 'admin', 'user': 'user', 'super admin': 'super_admin', 'super_admin': 'super_admin' };
+    roleSelect.value = roleMap[roleNorm] || roleNorm;
     // Fallback: iterate options in case value doesn't match exactly
     if (!roleSelect.value) {
         Array.from(roleSelect.options).forEach(opt => {
-            if (opt.value === roleNorm) opt.selected = true;
+            if (opt.value === (roleMap[roleNorm] || roleNorm)) opt.selected = true;
         });
     }
     document.getElementById('editPatientId').value    = patientId || '';

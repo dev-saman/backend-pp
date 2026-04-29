@@ -212,24 +212,33 @@ class UserManagementController extends Controller
     }
 
     /**
+     * Normalise a role string to Title Case for DB storage.
+     * e.g. 'admin' => 'Admin', 'super_admin' => 'Super Admin', 'user' => 'User'
+     */
+    private function formatRole(string $role): string
+    {
+        return ucwords(str_replace('_', ' ', strtolower($role)));
+    }
+
+    /**
      * Create a new user.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name'                  => 'required|string|max:255',
-            'email'                 => 'required|email|unique:users,email',
-            'password'              => 'required|string|min:8|confirmed',
-            'role'                  => 'required|in:admin,user,super_admin',
-            'phone'                 => 'nullable|string|max:30',
-            'country_code'          => 'nullable|string|max:10',
+            'name'         => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:8|confirmed',
+            'role'         => 'required|in:admin,user,super_admin',
+            'phone'        => 'nullable|string|max:30',
+            'country_code' => 'nullable|string|max:10',
         ]);
 
         User::create([
             'name'         => $request->name,
             'email'        => $request->email,
             'password'     => bcrypt($request->password),
-            'role'         => $request->role,
+            'role'         => $this->formatRole($request->role),
             'phone'        => $request->phone,
             'country_code' => $request->country_code,
             'is_active'    => true,
@@ -255,7 +264,7 @@ class UserManagementController extends Controller
         $data = [
             'name'         => $request->name,
             'email'        => $request->email,
-            'role'         => $request->role,
+            'role'         => $this->formatRole($request->role),
             'phone'        => $request->phone,
             'country_code' => $request->country_code,
         ];
