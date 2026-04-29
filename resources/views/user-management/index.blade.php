@@ -2,7 +2,153 @@
 
 @section('page-title', 'Users')
 
+@push('styles')
+{{-- Select2 CSS --}}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<style>
+/* ── Toast ─────────────────────────────────────────────── */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    min-width: 280px;
+    max-width: 380px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    pointer-events: all;
+    animation: slideIn .3s ease;
+}
+.toast.success { background: #16a34a; }
+.toast.error   { background: #dc2626; }
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideOut {
+    from { transform: translateX(0);    opacity: 1; }
+    to   { transform: translateX(120%); opacity: 0; }
+}
+.toast.hide { animation: slideOut .3s ease forwards; }
+
+/* ── Pagination ─────────────────────────────────────────── */
+.pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+.pagination-info {
+    font-size: 13px;
+    color: #6b7280;
+}
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.pagination li a,
+.pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    background: #fff;
+    transition: all .2s;
+}
+.pagination li a:hover {
+    background: #7c3aed;
+    color: #fff;
+    border-color: #7c3aed;
+}
+.pagination li.active span {
+    background: #7c3aed;
+    color: #fff;
+    border-color: #7c3aed;
+}
+.pagination li.disabled span {
+    color: #d1d5db;
+    cursor: not-allowed;
+    background: #f9fafb;
+}
+
+/* ── Select2 overrides ──────────────────────────────────── */
+.select2-container--default .select2-selection--single {
+    height: 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 14px;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px;
+    padding-left: 0;
+    color: #374151;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 38px;
+    right: 8px;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #7c3aed;
+}
+.select2-dropdown {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    font-size: 14px;
+}
+.select2-search--dropdown .select2-search__field {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+</style>
+@endpush
+
 @section('content')
+{{-- Toast container --}}
+<div id="toast-container"></div>
+
+{{-- Hidden flash data for JS toast --}}
+@if(session('success'))
+<span id="flash-success" data-msg="{{ session('success') }}" style="display:none;"></span>
+@endif
+@if(session('error'))
+<span id="flash-error" data-msg="{{ session('error') }}" style="display:none;"></span>
+@endif
+
 <div style="padding: 8px 0 16px;">
     <span style="color:#9ca3af; font-size:13px;">
         <a href="{{ route('dashboard') }}" style="color:#7c3aed; text-decoration:none;">Dashboard</a>
@@ -10,14 +156,6 @@
         <span>Users</span>
     </span>
 </div>
-
-{{-- Flash messages --}}
-@if(session('success'))
-<div class="alert alert-success" style="margin-bottom:16px;"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
-@endif
-@if(session('error'))
-<div class="alert alert-danger" style="margin-bottom:16px;"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
-@endif
 
 <div class="card" style="border-radius:12px; box-shadow:0 1px 6px rgba(0,0,0,0.07); background:#fff; padding:24px;">
 
@@ -93,7 +231,6 @@
                         </label>
                     </td>
                     <td style="padding:14px 14px; text-align:center; white-space:nowrap;">
-                        {{-- Edit button — passes all user data --}}
                         <a href="#" onclick="openEditModal(
                                 {{ $user->id }},
                                 '{{ addslashes($user->name) }}',
@@ -106,7 +243,6 @@
                             style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; background:#7c3aed; color:#fff; border-radius:6px; margin-right:6px; text-decoration:none;" title="Edit">
                             <i class="fas fa-edit" style="font-size:13px;"></i>
                         </a>
-                        {{-- Delete --}}
                         @if($user->id !== auth()->id())
                         <button onclick="deleteUser({{ $user->id }})"
                             style="display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; background:#ef4444; color:#fff; border-radius:6px; border:none; cursor:pointer;" title="Delete">
@@ -128,9 +264,15 @@
         </table>
     </div>
 
+    {{-- Pagination --}}
     @if($users->hasPages())
-    <div style="margin-top:16px; display:flex; justify-content:flex-end;">
-        {{ $users->links() }}
+    <div class="pagination-wrap">
+        <div class="pagination-info">
+            Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} results
+        </div>
+        <div>
+            {{ $users->onEachSide(2)->links('vendor.pagination.custom') }}
+        </div>
     </div>
     @endif
 </div>
@@ -144,55 +286,66 @@
         </div>
         <form method="POST" action="{{ route('user-management.store') }}">
             @csrf
+            {{-- Name --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Name</label>
                 <input type="text" name="name" required placeholder="Full name"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+            {{-- Email --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Email</label>
                 <input type="email" name="email" required placeholder="email@example.com"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+            {{-- Password --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Password</label>
-                <input type="password" name="password" required placeholder="Password" id="createPassword"
+                <input type="password" name="password" required placeholder="Password"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                 <p style="font-size:12px; color:#6b7280; margin:6px 0 0;">Password must be at least 8 characters and include:</p>
                 <ul style="font-size:12px; color:#6b7280; margin:4px 0 0 18px; padding:0;">
-                    <li>One uppercase letter</li>
-                    <li>One lowercase letter</li>
-                    <li>One number</li>
-                    <li>One special character</li>
+                    <li>One uppercase letter</li><li>One lowercase letter</li>
+                    <li>One number</li><li>One special character</li>
                 </ul>
             </div>
+            {{-- Confirm Password --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Confirm Password</label>
                 <input type="password" name="password_confirmation" placeholder="Enter confirm password"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
+            {{-- Country Code --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Country Code</label>
-                <select name="country_code" id="createCountryCode"
-                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <select name="country_code" id="createCountryCode" style="width:100%;">
                     <option value="">Select country code</option>
                     @foreach($countryCodes as $cc)
                         <option value="{{ $cc['code'] }}">{{ $cc['code'] }} {{ $cc['name'] }}</option>
                     @endforeach
                 </select>
             </div>
+            {{-- Phone --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone Number</label>
                 <input type="text" name="phone" placeholder="Enter phone Number"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
-            <div style="margin-bottom:20px;">
+            {{-- Role --}}
+            <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Role</label>
-                <select name="role" style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <select name="role" id="createRole" onchange="toggleCreatePatientId(this.value)"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                     <option value="admin">Admin</option>
                     <option value="user" selected>User (Patient)</option>
                     <option value="super_admin">Super Admin</option>
                 </select>
+            </div>
+            {{-- Patient ID — shown only when role = user --}}
+            <div id="createPatientIdWrap" style="margin-bottom:20px;">
+                <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Patient ID</label>
+                <input type="text" name="patient_id" id="createPatientId" placeholder="Enter patient ID"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button type="button" onclick="closeCreateModal()"
@@ -214,21 +367,18 @@
         <form method="POST" id="editForm" action="">
             @csrf
             @method('PUT')
-
             {{-- Name --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Name</label>
                 <input type="text" name="name" id="editName" required
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
-
             {{-- Email --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Email</label>
                 <input type="email" name="email" id="editEmail" required
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
-
             {{-- Password --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Password</label>
@@ -236,58 +386,48 @@
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f0f4ff;">
                 <p style="font-size:12px; color:#6b7280; margin:6px 0 0;">Password must be at least 8 characters and include:</p>
                 <ul style="font-size:12px; color:#6b7280; margin:4px 0 0 18px; padding:0;">
-                    <li>One uppercase letter</li>
-                    <li>One lowercase letter</li>
-                    <li>One number</li>
-                    <li>One special character</li>
+                    <li>One uppercase letter</li><li>One lowercase letter</li>
+                    <li>One number</li><li>One special character</li>
                 </ul>
             </div>
-
             {{-- Confirm Password --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Confirm Password</label>
                 <input type="password" name="password_confirmation" id="editPasswordConfirm" placeholder="Enter confirm password"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
-
             {{-- Country Code --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Country Code</label>
-                <select name="country_code" id="editCountryCode"
-                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
+                <select name="country_code" id="editCountryCode" style="width:100%;">
                     <option value="">Select country code</option>
                     @foreach($countryCodes as $cc)
                         <option value="{{ $cc['code'] }}">{{ $cc['code'] }} {{ $cc['name'] }}</option>
                     @endforeach
                 </select>
             </div>
-
-            {{-- Phone Number --}}
+            {{-- Phone --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Phone Number</label>
                 <input type="text" name="phone" id="editPhone" placeholder="Enter phone Number"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
             </div>
-
             {{-- Role --}}
             <div style="margin-bottom:14px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Role</label>
-                <select name="role" id="editRole"
+                <select name="role" id="editRole" onchange="toggleEditPatientId(this.value)"
                     style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box;">
                     <option value="admin">Admin</option>
                     <option value="user">User (Patient)</option>
                     <option value="super_admin">Super Admin</option>
                 </select>
             </div>
-            <input type="hidden" id="editRoleValue">
-
-            {{-- Patient ID (read-only) --}}
-            <div style="margin-bottom:20px;">
+            {{-- Patient ID --}}
+            <div id="editPatientIdWrap" style="margin-bottom:20px;">
                 <label style="display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:5px;">Patient ID</label>
-                <input type="text" id="editPatientId" name="patient_id" readonly
-                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f9fafb; color:#6b7280; cursor:not-allowed;">
+                <input type="text" id="editPatientId" name="patient_id"
+                    style="width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:9px 12px; font-size:14px; box-sizing:border-box; background:#f9fafb; color:#6b7280;">
             </div>
-
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button type="button" onclick="closeEditModal()"
                     style="padding:9px 24px; border:1px solid #e5e7eb; border-radius:8px; background:#6b7280; color:#fff; font-size:14px; cursor:pointer;">Cancel</button>
@@ -298,7 +438,60 @@
     </div>
 </div>
 
+{{-- Select2 JS --}}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Show flash messages as toasts on page load
+document.addEventListener('DOMContentLoaded', function () {
+    const successEl = document.getElementById('flash-success');
+    const errorEl   = document.getElementById('flash-error');
+    if (successEl) showToast(successEl.dataset.msg, 'success');
+    if (errorEl)   showToast(errorEl.dataset.msg,   'error');
+
+    // Init Select2 on country dropdowns
+    $('#createCountryCode').select2({
+        placeholder: 'Select country code',
+        allowClear: true,
+        dropdownParent: $('#createModal'),
+        width: '100%',
+    });
+    $('#editCountryCode').select2({
+        placeholder: 'Select country code',
+        allowClear: true,
+        dropdownParent: $('#editModal'),
+        width: '100%',
+    });
+
+    // Initial state for Patient ID fields
+    toggleCreatePatientId(document.getElementById('createRole').value);
+    toggleEditPatientId(document.getElementById('editRole').value);
+});
+
+// ── Patient ID visibility ─────────────────────────────────────────────────────
+function toggleCreatePatientId(role) {
+    const wrap = document.getElementById('createPatientIdWrap');
+    wrap.style.display = (role === 'user') ? 'block' : 'none';
+    document.getElementById('createPatientId').required = (role === 'user');
+}
+function toggleEditPatientId(role) {
+    const wrap = document.getElementById('editPatientIdWrap');
+    wrap.style.display = (role === 'user') ? 'block' : 'none';
+}
+
 // ── Toggle Status ─────────────────────────────────────────────────────────────
 function toggleStatus(userId, checkbox) {
     fetch(`/user-management/${userId}/toggle-status`, {
@@ -321,11 +514,16 @@ function toggleStatus(userId, checkbox) {
                 track.style.background = '#d1d5db';
                 knob.style.left = '3px';
             }
+            showToast('User status updated.', 'success');
         } else {
             checkbox.checked = !checkbox.checked;
+            showToast('Failed to update status.', 'error');
         }
     })
-    .catch(() => { checkbox.checked = !checkbox.checked; });
+    .catch(() => {
+        checkbox.checked = !checkbox.checked;
+        showToast('Network error.', 'error');
+    });
 }
 
 // ── Delete User ───────────────────────────────────────────────────────────────
@@ -343,15 +541,18 @@ function deleteUser(userId) {
         if (data.status === 'success') {
             const row = document.getElementById(`user-row-${userId}`);
             if (row) row.remove();
+            showToast('User deleted successfully.', 'success');
         } else {
-            alert(data.message || 'Could not delete user.');
+            showToast(data.message || 'Could not delete user.', 'error');
         }
-    });
+    })
+    .catch(() => showToast('Network error.', 'error'));
 }
 
 // ── Create Modal ──────────────────────────────────────────────────────────────
 function openCreateModal() {
     document.getElementById('createModal').style.display = 'flex';
+    toggleCreatePatientId(document.getElementById('createRole').value);
 }
 function closeCreateModal() {
     document.getElementById('createModal').style.display = 'none';
@@ -359,28 +560,31 @@ function closeCreateModal() {
 
 // ── Edit Modal ────────────────────────────────────────────────────────────────
 function openEditModal(id, name, email, role, phone, countryCode, patientId) {
-    document.getElementById('editName').value         = name;
-    document.getElementById('editEmail').value        = email;
-    document.getElementById('editPhone').value        = phone || '';
-    // Set role dropdown — normalise to lowercase to match option values
+    document.getElementById('editName').value  = name;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editPhone').value = phone || '';
+
+    // Role dropdown
     const roleSelect = document.getElementById('editRole');
     const roleNorm   = (role || '').toLowerCase().trim();
-    // Map capitalised DB values back to option values
-    const roleMap = { 'admin': 'admin', 'user': 'user', 'super admin': 'super_admin', 'super_admin': 'super_admin' };
+    const roleMap    = { 'admin': 'admin', 'user': 'user', 'super admin': 'super_admin', 'super_admin': 'super_admin' };
     roleSelect.value = roleMap[roleNorm] || roleNorm;
-    // Fallback: iterate options in case value doesn't match exactly
     if (!roleSelect.value) {
         Array.from(roleSelect.options).forEach(opt => {
             if (opt.value === (roleMap[roleNorm] || roleNorm)) opt.selected = true;
         });
     }
-    document.getElementById('editPatientId').value    = patientId || '';
-    document.getElementById('editPassword').value     = '';
+
+    // Patient ID
+    document.getElementById('editPatientId').value = patientId || '';
+    toggleEditPatientId(roleSelect.value);
+
+    // Password
+    document.getElementById('editPassword').value        = '';
     document.getElementById('editPasswordConfirm').value = '';
 
-    // Set country code dropdown
-    const ccSelect = document.getElementById('editCountryCode');
-    ccSelect.value = countryCode || '';
+    // Country code — use Select2 val()
+    $('#editCountryCode').val(countryCode || '').trigger('change');
 
     document.getElementById('editForm').action = `/user-management/${id}`;
     document.getElementById('editModal').style.display = 'flex';
@@ -389,13 +593,13 @@ function closeEditModal() {
     document.getElementById('editModal').style.display = 'none';
 }
 
-// ── Password match validation on edit form ────────────────────────────────────
+// ── Password match validation ─────────────────────────────────────────────────
 document.getElementById('editForm').addEventListener('submit', function(e) {
     const pw  = document.getElementById('editPassword').value;
     const cpw = document.getElementById('editPasswordConfirm').value;
     if (pw && pw !== cpw) {
         e.preventDefault();
-        alert('Passwords do not match.');
+        showToast('Passwords do not match.', 'error');
         return false;
     }
 });
