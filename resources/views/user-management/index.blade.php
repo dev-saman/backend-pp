@@ -68,8 +68,14 @@
                     <td style="padding:14px 14px; color:#374151;">{{ $user->email }}</td>
                     <td style="padding:14px 14px;">
                         @php
-                            $roleLabel = ucfirst(str_replace('_', ' ', $user->role ?? 'user'));
-                            $roleColor = in_array(strtolower($user->role), ['admin','super_admin']) ? '#7c3aed' : '#6b7280';
+                            $roleRaw   = strtolower($user->role ?? 'user');
+                            $roleLabel = match($roleRaw) {
+                                'admin'       => 'Admin',
+                                'super_admin' => 'Super Admin',
+                                'user'        => 'User',
+                                default       => ucwords(str_replace('_', ' ', $roleRaw)),
+                            };
+                            $roleColor = in_array($roleRaw, ['admin','super_admin']) ? '#7c3aed' : '#6b7280';
                         @endphp
                         <span style="background:{{ $roleColor }}; color:#fff; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:600;">
                             {{ $roleLabel }}
@@ -273,6 +279,7 @@
                     <option value="super_admin">Super Admin</option>
                 </select>
             </div>
+            <input type="hidden" id="editRoleValue">
 
             {{-- Patient ID (read-only) --}}
             <div style="margin-bottom:20px;">
@@ -355,7 +362,16 @@ function openEditModal(id, name, email, role, phone, countryCode, patientId) {
     document.getElementById('editName').value         = name;
     document.getElementById('editEmail').value        = email;
     document.getElementById('editPhone').value        = phone || '';
-    document.getElementById('editRole').value         = role;
+    // Set role dropdown — normalise to lowercase to match option values
+    const roleSelect = document.getElementById('editRole');
+    const roleNorm   = (role || '').toLowerCase().trim();
+    roleSelect.value = roleNorm;
+    // Fallback: iterate options in case value doesn't match exactly
+    if (!roleSelect.value) {
+        Array.from(roleSelect.options).forEach(opt => {
+            if (opt.value === roleNorm) opt.selected = true;
+        });
+    }
     document.getElementById('editPatientId').value    = patientId || '';
     document.getElementById('editPassword').value     = '';
     document.getElementById('editPasswordConfirm').value = '';
