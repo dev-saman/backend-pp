@@ -11,9 +11,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ClinicalController extends Controller
 {
-    public function getPatientSubmitedFormData($patientId)
+    public function getPatientSubmitedFormData(Request $request)
     {
         try {
+            $patientId = auth()->user()->patient_id;
             $url = "https://ptp.advantagehcs.com/api/submittedData/" . $patientId;
 
             $response = Http::timeout(30)
