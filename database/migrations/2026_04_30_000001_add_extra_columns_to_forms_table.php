@@ -67,9 +67,14 @@ return new class extends Migration
                 $table->string('assign_type')->nullable()->after('payment_type');
             }
 
+            // assign_user_id column
+            if (!Schema::hasColumn('forms', 'assign_user_id')) {
+                $table->unsignedBigInteger('assign_user_id')->nullable()->after('assign_type');
+            }
+
             // HTML output column
             if (!Schema::hasColumn('forms', 'html')) {
-                $table->text('html')->nullable()->after('assign_type');
+                $table->text('html')->nullable()->after('assign_user_id');
             }
         });
     }

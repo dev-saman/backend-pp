@@ -11,7 +11,13 @@ class Form extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'description', 'fields', 'status', 'category', 'created_by', 'submission_count',
+        'name', 'slug', 'description', 'fields', 'status', 'category', 'created_by', 'submission_count',
+        'success_msg', 'thanks_msg',
+        'assign_type', 'assign_user_id',
+        'logo', 'bccemail', 'email', 'ccemail',
+        'amount', 'currency_symbol', 'currency_name',
+        'is_active', 'allow_share_section', 'allow_comments',
+        'payment_status', 'payment_type', 'html',
     ];
 
     protected $casts = [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use App\Models\FormSubmission;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -29,22 +30,38 @@ class FormController extends Controller
 
     public function create()
     {
-        return view('forms.create');
+        $users = User::orderBy('name')->get(['id', 'name', 'email']);
+        return view('forms.create', compact('users'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category'    => 'nullable|string|max:100',
-            'status'      => 'nullable|in:draft,active,archived',
+            'name'           => 'required|string|max:255',
+            'description'    => 'nullable|string',
+            'category'       => 'nullable|string|max:100',
+            'status'         => 'nullable|in:draft,active,archived',
+            'success_msg'    => 'nullable|string',
+            'thanks_msg'     => 'nullable|string',
+            'assign_type'    => 'nullable|string|max:100',
+            'assign_user_id' => 'nullable|integer|exists:users,id',
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['status']     = $validated['status'] ?? 'draft';
         $validated['slug']       = Str::slug($validated['name']) . '-' . Str::random(6);
         $validated['fields']     = [];
+
+        // Determine assign_type based on toggles
+        if ($request->boolean('assign_public_enabled')) {
+            $validated['assign_type']    = 'public';
+            $validated['assign_user_id'] = null;
+        } elseif ($request->boolean('assign_user_enabled')) {
+            $validated['assign_type']    = 'user';
+        } elseif (!$request->boolean('assign_role_enabled')) {
+            $validated['assign_type']    = null;
+            $validated['assign_user_id'] = null;
+        }
 
         $form = Form::create($validated);
 
