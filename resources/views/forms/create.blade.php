@@ -56,17 +56,17 @@
                 <label class="form-label" style="font-weight:700;color:#374151;display:block;margin-bottom:12px;">Assign Form</label>
                 <div style="display:flex;align-items:center;gap:40px;flex-wrap:nowrap;margin-bottom:16px;">
 
-                    {{-- Role toggle (same pattern as user-management) --}}
+                    {{-- Role toggle ON by default --}}
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:14px;font-weight:500;color:#374151;">Role</span>
                         <label class="af-toggle-switch">
                             <input type="checkbox" id="assign_role_chk" name="assign_role_enabled" value="1"
-                                   {{ old('assign_role_enabled') ? 'checked' : '' }}
+                                   {{ old('assign_role_enabled', '1') ? 'checked' : '' }}
                                    onchange="afToggleChanged('role', this)">
                             <span class="af-toggle-track" id="role_track"
-                                  style="background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                  style="background:{{ old('assign_role_enabled', '1') ? '#C8102E' : '#d1d5db' }};">
                                 <span class="af-toggle-knob" id="role_knob"
-                                      style="left:{{ old('assign_role_enabled') ? '23px' : '3px' }};"></span>
+                                      style="left:{{ old('assign_role_enabled', '1') ? '23px' : '3px' }};"></span>
                             </span>
                         </label>
                     </div>
@@ -104,7 +104,7 @@
                 </div>
 
                 {{-- Role dropdown --}}
-                <div id="role_field" style="{{ old('assign_role_enabled') ? '' : 'display:none;' }}">
+                <div id="role_field" style="{{ old('assign_role_enabled', '1') ? '' : 'display:none;' }}">
                     <div class="form-group" style="margin-top:10px;">
                         <label class="form-label">Role</label>
                         <select name="assign_type" class="form-control">
@@ -166,20 +166,26 @@
 @endsection
 
 <script>
-    function afToggleChanged(type, checkbox) {
-        var on    = checkbox.checked;
-        var track = document.getElementById(type + '_track');
-        var knob  = document.getElementById(type + '_knob');
-        track.style.background = on ? '#C8102E' : '#d1d5db';
-        knob.style.left        = on ? '23px' : '3px';
+    var AF_TYPES = ['role', 'user', 'public'];
 
-        // Public is mutually exclusive with Role and User
-        if (type === 'public' && on) {
-            var roleChk = document.getElementById('assign_role_chk');
-            var userChk = document.getElementById('assign_user_chk');
-            if (roleChk.checked) { roleChk.checked = false; afToggleChanged('role', roleChk); }
-            if (userChk.checked) { userChk.checked = false; afToggleChanged('user', userChk); }
+    function afToggleChanged(type, checkbox) {
+        var on = checkbox.checked;
+
+        // Mutually exclusive: turn off all others when this one turns ON
+        if (on) {
+            AF_TYPES.forEach(function(t) {
+                if (t !== type) {
+                    var otherChk = document.getElementById('assign_' + t + '_chk');
+                    if (otherChk && otherChk.checked) {
+                        otherChk.checked = false;
+                        afSetVisual(t, false);
+                        afHideField(t);
+                    }
+                }
+            });
         }
+
+        afSetVisual(type, on);
 
         if (type === 'role') {
             document.getElementById('role_field').style.display = on ? '' : 'none';
@@ -188,6 +194,24 @@
         if (type === 'user') {
             document.getElementById('user_field').style.display = on ? '' : 'none';
             if (!on) document.querySelector('select[name="assign_user_id"]').value = '';
+        }
+    }
+
+    function afSetVisual(type, on) {
+        var track = document.getElementById(type + '_track');
+        var knob  = document.getElementById(type + '_knob');
+        if (track) track.style.background = on ? '#C8102E' : '#d1d5db';
+        if (knob)  knob.style.left        = on ? '23px' : '3px';
+    }
+
+    function afHideField(type) {
+        if (type === 'role') {
+            document.getElementById('role_field').style.display = 'none';
+            document.querySelector('select[name="assign_type"]').value = '';
+        }
+        if (type === 'user') {
+            document.getElementById('user_field').style.display = 'none';
+            document.querySelector('select[name="assign_user_id"]').value = '';
         }
     }
 </script>
