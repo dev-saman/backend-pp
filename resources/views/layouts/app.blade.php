@@ -534,7 +534,7 @@
         </a>
         <a href="{{ route('messages.index') }}" class="nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }}">
             <i class="fas fa-envelope"></i> Messages
-            @php $unread = \App\Models\Message::where('is_read', false)->where('sender_type', 'patient')->count(); @endphp
+            @php $unread = \App\Models\Message::where('is_read', false)->count(); @endphp
             @if($unread > 0)
                 <span class="nav-badge">{{ $unread }}</span>
             @endif

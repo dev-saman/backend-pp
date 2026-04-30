@@ -2,7 +2,7 @@
 
 @section('title', $message->subject . ' - AdvantageHCS Admin')
 @section('page-title', 'Messages')
-@section('page-subtitle', 'Secure messaging with patients')
+@section('page-subtitle', 'Secure messaging center')
 
 @section('header-actions')
     <a href="{{ route('messages.create') }}" class="btn btn-primary">
@@ -30,7 +30,7 @@
                 </div>
                 <div style="flex:1; min-width:0;">
                     <div style="font-weight:500; font-size:14px; color:#1a1a2e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        {{ $msg->sender_name ?? 'Patient' }}
+                        {{ $msg->sender_name ?? 'Unknown' }}
                     </div>
                     <div style="font-size:11px; color:#9ca3af;">{{ $msg->created_at->diffForHumans() }}</div>
                 </div>

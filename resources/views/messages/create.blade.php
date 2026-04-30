@@ -2,7 +2,7 @@
 
 @section('title', 'New Message - AdvantageHCS Admin')
 @section('page-title', 'New Message')
-@section('page-subtitle', 'Send a secure message to a patient')
+@section('page-subtitle', 'Compose and send a new message')
 
 @section('header-actions')
     <a href="{{ route('messages.index') }}" class="btn btn-secondary">
@@ -18,15 +18,6 @@
     <div class="card-body">
         <form method="POST" action="{{ route('messages.store') }}">
             @csrf
-            <div class="form-group">
-                <label class="form-label">To (Patient) <span style="color:#ef4444;">*</span></label>
-                <select name="patient_id" class="form-control" required>
-                    <option value="">Select a patient...</option>
-                    @foreach($patients as $patient)
-                        <option value="{{ $patient->id }}">{{ $patient->full_name }} — {{ $patient->email }}</option>
-                    @endforeach
-                </select>
-            </div>
             <div class="form-group">
                 <label class="form-label">Category</label>
                 <select name="category" class="form-control">

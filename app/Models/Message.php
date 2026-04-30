@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,20 +9,15 @@ class Message extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id', 'admin_id', 'subject', 'body', 'direction',
-        'status', 'category', 'has_attachment', 'sender_name', 'sender_type',
-        'is_read', 'parent_id',
+        'parent_id',
+        'sender_name', 'sender_type',
+        'subject', 'body', 'category',
+        'status', 'is_read',
     ];
 
     protected $casts = [
-        'has_attachment' => 'boolean',
-        'is_read'        => 'boolean',
+        'is_read' => 'boolean',
     ];
-
-    public function patient()
-    {
-        return $this->belongsTo(Patient::class);
-    }
 
     public function admin()
     {

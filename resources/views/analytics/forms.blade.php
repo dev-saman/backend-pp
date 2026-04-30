@@ -15,7 +15,7 @@
 </div>
 
 {{-- Top Summary Stats --}}
-<div class="stats-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:28px;">
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px;">
     <div class="stat-card">
         <div class="stat-icon" style="background:#eff6ff;color:#3b82f6;">📝</div>
         <div class="stat-info">
@@ -80,13 +80,13 @@
     </div>
 
     {{-- Stats Row --}}
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-bottom:1px solid #f1f5f9;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #f1f5f9;">
         @php
             $total = $form->stats['total_submissions'];
             $completed = $form->stats['completed'];
             $drafts = $form->stats['drafts'];
             $rate = $total > 0 ? round(($completed / $total) * 100) : 0;
-            $unique = $form->stats['unique_patients'];
+
         @endphp
         <div style="padding:16px 20px;border-right:1px solid #f1f5f9;text-align:center;">
             <div style="font-size:24px;font-weight:800;color:#1e293b;">{{ $total }}</div>
@@ -99,10 +99,6 @@
         <div style="padding:16px 20px;border-right:1px solid #f1f5f9;text-align:center;">
             <div style="font-size:24px;font-weight:800;color:#f59e0b;">{{ $drafts }}</div>
             <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">Saved as Draft</div>
-        </div>
-        <div style="padding:16px 20px;border-right:1px solid #f1f5f9;text-align:center;">
-            <div style="font-size:24px;font-weight:800;color:#6366f1;">{{ $unique }}</div>
-            <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;">Unique Patients</div>
         </div>
         <div style="padding:16px 20px;text-align:center;">
             <div style="font-size:24px;font-weight:800;color:{{ $rate >= 75 ? '#22c55e' : ($rate >= 40 ? '#f59e0b' : '#ef4444') }};">{{ $rate }}%</div>
@@ -140,8 +136,7 @@
             <table class="table" style="margin:0;">
                 <thead>
                     <tr>
-                        <th>Patient</th>
-                        <th>Submitted Via</th>
+                        <th>Submitted By</th>
                         <th>Status</th>
                         <th>Submitted At</th>
                         <th></th>
@@ -157,20 +152,12 @@
                     @endphp
                     <tr>
                         <td>
-                            @if($sub->patient)
-                            <div style="font-weight:600;color:#1e293b;">{{ $sub->patient->first_name }} {{ $sub->patient->last_name }}</div>
-                            <div style="font-size:12px;color:#94a3b8;">{{ $sub->patient->email }}</div>
-                            @elseif($sub->patient_name)
+                            @if($sub->patient_name)
                             <div style="font-weight:600;color:#1e293b;">{{ $sub->patient_name }}</div>
-                            <div style="font-size:12px;color:#94a3b8;">{{ $sub->patient_email ?? 'Public submission' }}</div>
+                            <div style="font-size:12px;color:#94a3b8;">{{ $sub->patient_email ?? '' }}</div>
                             @else
                             <div style="font-weight:500;color:#94a3b8;font-style:italic;">Anonymous</div>
                             @endif
-                        </td>
-                        <td>
-                            <span style="font-size:12px;color:#64748b;">
-                                {{ $sub->assignment_id ? '🔀 Via Funnel' : '🔗 Direct Link' }}
-                            </span>
                         </td>
                         <td>
                             <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:{{ $sv['bg'] }};color:{{ $sv['color'] }};">
@@ -184,7 +171,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" style="text-align:center;padding:24px;color:#94a3b8;">No submissions yet</td>
+                        <td colspan="4" style="text-align:center;padding:24px;color:#94a3b8;">No submissions yet</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -210,7 +197,7 @@
 <div class="card" style="padding:64px;text-align:center;">
     <div style="font-size:48px;margin-bottom:16px;">📝</div>
     <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px;">No forms created yet</div>
-    <p style="color:#94a3b8;margin-bottom:20px;">Create your first form to start collecting patient data.</p>
+    <p style="color:#94a3b8;margin-bottom:20px;">Create your first form to start collecting data.</p>
     <a href="{{ route('forms.create') }}" class="btn btn-primary">Create Form</a>
 </div>
 @endforelse

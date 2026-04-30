@@ -91,7 +91,7 @@
         <div style="margin-top:40px; padding:16px; background:rgba(200,16,46,0.1); border:1px solid rgba(200,16,46,0.3); border-radius:8px;">
             <p style="color:#fca5a5; font-size:13px; margin:0;">
                 <i class="fas fa-info-circle" style="margin-right:6px;"></i>
-                Coming Soon — Drag-and-drop form builder with field configuration, conditional logic, and patient submission tracking.
+                Coming Soon — Drag-and-drop form builder with field configuration, conditional logic, and submission tracking.
             </p>
         </div>
     </div>
@@ -108,7 +108,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Patient</th>
+                    <th>Submitted By</th>
                     <th>Status</th>
                     <th>Submitted</th>
                     <th>Actions</th>
@@ -117,7 +117,7 @@
             <tbody>
                 @foreach($form->submissions as $submission)
                 <tr>
-                    <td style="font-weight:500;">{{ $submission->patient->full_name ?? 'Anonymous' }}</td>
+                    <td style="font-weight:500;">{{ $submission->patient_name ?? 'Anonymous' }}</td>
                     <td>
                         <span class="badge {{ $submission->status === 'reviewed' ? 'badge-success' : ($submission->status === 'pending' ? 'badge-warning' : 'badge-secondary') }}">
                             {{ ucfirst($submission->status) }}

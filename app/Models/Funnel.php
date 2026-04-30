@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,8 +16,8 @@ class Funnel extends Model
     ];
 
     protected $casts = [
-        'steps'    => 'array',
-        'form_ids' => 'array',
+        'steps'        => 'array',
+        'form_ids'     => 'array',
         'published_at' => 'datetime',
     ];
 
@@ -30,11 +29,6 @@ class Funnel extends Model
     public function submissions()
     {
         return $this->hasMany(FormSubmission::class);
-    }
-
-    public function assignments()
-    {
-        return $this->hasMany(PatientFunnelAssignment::class);
     }
 
     public function getPublicUrlAttribute(): string
