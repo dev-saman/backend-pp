@@ -584,16 +584,18 @@ body {
 .ctx-sep { height: 1px; background: var(--border); margin: 3px 0; }
 
 /* ===================== TOAST ===================== */
-.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+.toast-container { position: fixed; top: 54px; right: 0; z-index: 99999; display: flex; flex-direction: column; gap: 0; }
 .toast {
-  padding: 10px 16px; border-radius: 9px; font-size: 12px; font-weight: 500;
-  background: var(--bg-panel); border: 1px solid var(--border);
-  color: var(--text-primary); box-shadow: var(--shadow-lg);
-  animation: slideIn 0.2s ease; display: flex; align-items: center; gap: 8px;
+  padding: 16px 24px; border-radius: 0 0 0 8px; font-size: 14px; font-weight: 600;
+  color: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  animation: toastSlideIn 0.3s ease; display: flex; align-items: center; gap: 10px;
+  min-width: 280px;
 }
-.toast.success { border-color: var(--green); }
-.toast.error { border-color: var(--red); }
-@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast.success { background: #16a34a; }
+.toast.error   { background: #dc2626; }
+@keyframes toastSlideIn  { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes toastSlideOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
+.toast.hide { animation: toastSlideOut 0.3s ease forwards; }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -1322,14 +1324,8 @@ function saveForm(showNotification = true) {
 }
 
 function showToast(message, type = 'success') {
-  const existing = document.getElementById('builderToast');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.id = 'builderToast';
-  el.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${type==='success'?'#1e293b':'#ef4444'};color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:500;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);`;
-  el.textContent = message;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+  // unified — delegate to the container-based showToast below
+  _showBuilderToast(message, type);
 }
 
 function publishForm() {
@@ -1347,13 +1343,18 @@ function filterPalette(query) {
   });
 }
 
-function showToast(msg, type = '') {
+function _showBuilderToast(msg, type) {
+  type = type || 'success';
   const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div'); toast.className = 'toast ' + type;
-  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-  toast.innerHTML = `${icon} ${msg}`;
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icon = type === 'success' ? 'check-circle' : 'exclamation-circle';
+  toast.innerHTML = `<i class="fas fa-${icon}"></i> ${msg}`;
   container.appendChild(toast);
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 2700);
+  setTimeout(function() {
+    toast.classList.add('hide');
+    setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+  }, 4000);
 }
 
 document.getElementById('canvasWrap').addEventListener('click', e => {

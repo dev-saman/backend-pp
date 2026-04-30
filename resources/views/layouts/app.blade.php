@@ -251,20 +251,36 @@
 
         /* ===== GLOBAL TOAST ===== */
         #global-toast-container {
-            position: fixed; top: 20px; right: 20px; z-index: 99999;
-            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+            position: fixed;
+            top: var(--header-height);
+            right: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            pointer-events: none;
+            width: auto;
         }
         .g-toast {
-            display: flex; align-items: center; gap: 10px; padding: 14px 20px;
-            border-radius: 10px; font-size: 14px; font-weight: 500; color: #fff;
-            min-width: 280px; max-width: 400px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            pointer-events: all; animation: gToastIn .3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            min-width: 320px;
+            max-width: 480px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            pointer-events: all;
+            animation: gToastIn .3s ease;
+            border-radius: 0 0 0 8px;
         }
         .g-toast.success { background: #16a34a; }
         .g-toast.error   { background: #dc2626; }
         .g-toast.warning { background: #d97706; }
-        @keyframes gToastIn  { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes gToastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+        @keyframes gToastIn  { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes gToastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
         .g-toast.hide { animation: gToastOut .3s ease forwards; }
 
         /* ===== CARDS ===== */
