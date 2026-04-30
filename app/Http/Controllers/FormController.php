@@ -19,10 +19,6 @@ class FormController extends Controller
             $query->where('name', 'like', "%{$request->search}%");
         }
 
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
         $forms = $query->latest()->paginate(20);
 
         return view('forms.index', compact('forms'));
@@ -129,12 +125,8 @@ class FormController extends Controller
             $form->description = $request->description;
         }
 
-        if ($request->has('status') && $request->status) {
-            $form->status = $request->status;
-        }
-
-        // Ensure slug exists for active forms
-        if ($form->status === 'active' && empty($form->slug)) {
+        // Ensure slug exists
+        if (empty($form->slug)) {
             $form->slug = Str::slug($form->name) . '-' . Str::random(6);
         }
 
@@ -145,7 +137,6 @@ class FormController extends Controller
             'message' => 'Form schema saved successfully.',
             'form'    => [
                 'id'          => $form->id,
-                'status'      => $form->status,
                 'slug'        => $form->slug,
                 'url'         => $form->slug ? url('/f/' . $form->slug) : null,
                 'fields_count' => is_array($form->fields) ? count($form->fields) : 0,
@@ -162,7 +153,6 @@ class FormController extends Controller
         if (empty($form->slug)) {
             $form->slug = Str::slug($form->name) . '-' . Str::random(6);
         }
-        $form->status = 'active';
         $form->save();
 
         return response()->json([
@@ -178,7 +168,7 @@ class FormController extends Controller
      */
     public function publicForm(string $slug)
     {
-        $form = Form::where('slug', $slug)->where('status', 'active')->firstOrFail();
+        $form = Form::where('slug', $slug)->firstOrFail();
         return view('forms.public', compact('form'));
     }
 
@@ -188,7 +178,7 @@ class FormController extends Controller
      */
     public function submitPublicForm(Request $request, string $slug)
     {
-        $form = Form::where('slug', $slug)->where('status', 'active')->firstOrFail();
+        $form = Form::where('slug', $slug)->firstOrFail();
 
         $submittedData = $request->input('fields', []);
 
