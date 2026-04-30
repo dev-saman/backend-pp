@@ -704,7 +704,7 @@ body {
     <div class="canvas-form" id="canvasForm">
       <div class="canvas-form-header">
         <div class="canvas-form-title" id="canvasFormTitle">{{ $form->name ?? 'New Form' }}</div>
-        <div class="canvas-form-desc" id="canvasFormDesc">{{ $form->description ?? 'Please fill out all required fields below' }}</div>
+        <div class="canvas-form-desc" id="canvasFormDesc">{{ $form->description ?? '' }}</div>
       </div>
       <div class="canvas-drop-zone" id="dropZone">
         <div class="drop-hint">
@@ -874,7 +874,7 @@ function toggleTheme() {
 // ===================== INITIAL DATA FROM LARAVEL =====================
 let formData = {
   title: @json($form->name ?? 'New Form'),
-  description: @json($form->description ?? 'Please fill out all required fields below'),
+  description: @json($form->description ?? ''),
   status: @json($form->status ?? 'draft'),
   rows: @json(isset($form) && $form->fields && isset($form->fields['rows']) ? $form->fields['rows'] : [])
 };
