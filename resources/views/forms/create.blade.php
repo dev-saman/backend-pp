@@ -112,50 +112,43 @@
 
             {{-- Assign Form --}}
             <div class="form-group">
-                <label class="form-label section-heading">Assign Form</label>
-                <div class="assign-toggle-row">
+                <label class="form-label" style="font-weight:700;color:#374151;display:block;margin-bottom:12px;">Assign Form</label>
+                {{-- Inline-styled toggle row so global CSS cannot override --}}
+                <div style="display:flex;align-items:center;gap:40px;flex-wrap:nowrap;margin-bottom:16px;">
+
                     {{-- Role toggle --}}
-                    <div class="assign-toggle-item">
-                        <span class="toggle-label">Role</span>
-                        <label class="assign-toggle-switch">
-                            <input type="checkbox" name="assign_role_enabled" id="assign_role_toggle"
-                                   value="1" {{ old('assign_role_enabled') ? 'checked' : '' }}
-                                   onchange="assignToggleChanged('role', this)">
-                            <span class="assign-toggle-track" id="role_track"
-                                style="background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};">
-                                <span class="assign-toggle-knob" id="role_knob"
-                                    style="left:{{ old('assign_role_enabled') ? '23px' : '3px' }};"></span>
-                            </span>
-                        </label>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">Role</span>
+                        <div id="role_track" onclick="assignToggleClick('role')"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                            <span id="role_knob"
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_role_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                        </div>
+                        <input type="hidden" name="assign_role_enabled" id="assign_role_hidden" value="{{ old('assign_role_enabled') ? '1' : '0' }}">
                     </div>
+
                     {{-- User toggle --}}
-                    <div class="assign-toggle-item">
-                        <span class="toggle-label">User</span>
-                        <label class="assign-toggle-switch">
-                            <input type="checkbox" name="assign_user_enabled" id="assign_user_toggle"
-                                   value="1" {{ old('assign_user_enabled') ? 'checked' : '' }}
-                                   onchange="assignToggleChanged('user', this)">
-                            <span class="assign-toggle-track" id="user_track"
-                                style="background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};">
-                                <span class="assign-toggle-knob" id="user_knob"
-                                    style="left:{{ old('assign_user_enabled') ? '23px' : '3px' }};"></span>
-                            </span>
-                        </label>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">User</span>
+                        <div id="user_track" onclick="assignToggleClick('user')"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                            <span id="user_knob"
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_user_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                        </div>
+                        <input type="hidden" name="assign_user_enabled" id="assign_user_hidden" value="{{ old('assign_user_enabled') ? '1' : '0' }}">
                     </div>
+
                     {{-- Public toggle --}}
-                    <div class="assign-toggle-item">
-                        <span class="toggle-label">Public</span>
-                        <label class="assign-toggle-switch">
-                            <input type="checkbox" name="assign_public_enabled" id="assign_public_toggle"
-                                   value="1" {{ old('assign_public_enabled') ? 'checked' : '' }}
-                                   onchange="assignToggleChanged('public', this)">
-                            <span class="assign-toggle-track" id="public_track"
-                                style="background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};">
-                                <span class="assign-toggle-knob" id="public_knob"
-                                    style="left:{{ old('assign_public_enabled') ? '23px' : '3px' }};"></span>
-                            </span>
-                        </label>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">Public</span>
+                        <div id="public_track" onclick="assignToggleClick('public')"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                            <span id="public_knob"
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_public_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                        </div>
+                        <input type="hidden" name="assign_public_enabled" id="assign_public_hidden" value="{{ old('assign_public_enabled') ? '1' : '0' }}">
                     </div>
+
                 </div>
 
                 {{-- Role dropdown --}}
@@ -222,32 +215,37 @@
 
 @push('scripts')
 <script>
-    function assignToggleChanged(type, checkbox) {
-        var track = document.getElementById(type + '_track');
-        var knob  = document.getElementById(type + '_knob');
-        if (checkbox.checked) {
-            track.style.background = '#C8102E';
-            knob.style.left = '23px';
-        } else {
-            track.style.background = '#d1d5db';
-            knob.style.left = '3px';
-        }
+    var toggleState = {
+        role:   {{ old('assign_role_enabled') ? 'true' : 'false' }},
+        user:   {{ old('assign_user_enabled') ? 'true' : 'false' }},
+        public: {{ old('assign_public_enabled') ? 'true' : 'false' }}
+    };
 
-        // Show/hide dropdowns
+    function assignToggleClick(type) {
+        // Public is mutually exclusive with Role/User
+        if (type === 'public' && !toggleState['public']) {
+            setToggle('role', false);
+            setToggle('user', false);
+        }
+        setToggle(type, !toggleState[type]);
+    }
+
+    function setToggle(type, on) {
+        toggleState[type] = on;
+        var track  = document.getElementById(type + '_track');
+        var knob   = document.getElementById(type + '_knob');
+        var hidden = document.getElementById(type === 'role' ? 'assign_role_hidden' : (type === 'user' ? 'assign_user_hidden' : 'assign_public_hidden'));
+        track.style.background = on ? '#C8102E' : '#d1d5db';
+        knob.style.left        = on ? '23px' : '3px';
+        hidden.value           = on ? '1' : '0';
+
         if (type === 'role') {
-            document.getElementById('role_field').style.display = checkbox.checked ? '' : 'none';
-            if (!checkbox.checked) document.querySelector('select[name="assign_type"]').value = '';
+            document.getElementById('role_field').style.display = on ? '' : 'none';
+            if (!on) document.querySelector('select[name="assign_type"]').value = '';
         }
         if (type === 'user') {
-            document.getElementById('user_field').style.display = checkbox.checked ? '' : 'none';
-            if (!checkbox.checked) document.querySelector('select[name="assign_user_id"]').value = '';
-        }
-        // Public is mutually exclusive with Role and User
-        if (type === 'public' && checkbox.checked) {
-            var roleChk = document.getElementById('assign_role_toggle');
-            var userChk = document.getElementById('assign_user_toggle');
-            roleChk.checked = false; assignToggleChanged('role', roleChk);
-            userChk.checked = false; assignToggleChanged('user', userChk);
+            document.getElementById('user_field').style.display = on ? '' : 'none';
+            if (!on) document.querySelector('select[name="assign_user_id"]').value = '';
         }
     }
 </script>
