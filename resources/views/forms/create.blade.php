@@ -11,42 +11,64 @@
 @push('styles')
 <style>
     .assign-toggle-row {
-        display: flex;
-        align-items: center;
-        gap: 36px;
-        margin-bottom: 16px;
-        flex-wrap: nowrap;
+        display: flex !important;
+        align-items: center !important;
+        gap: 40px !important;
+        margin-bottom: 16px !important;
+        flex-wrap: nowrap !important;
     }
     .assign-toggle-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
     }
     .assign-toggle-item .toggle-label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #374151;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #374151 !important;
+        white-space: nowrap !important;
     }
-    /* Toggle switch - same as user-management */
-    .assign-toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
-    .assign-toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .assign-toggle-track {
-        position: absolute; inset: 0; border-radius: 24px; transition: .3s;
+    /* Toggle switch */
+    label.assign-toggle-switch {
+        position: relative !important;
+        display: inline-block !important;
+        width: 44px !important;
+        height: 24px !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        vertical-align: middle !important;
     }
-    .assign-toggle-knob {
-        position: absolute; height: 18px; width: 18px; bottom: 3px;
-        border-radius: 50%; background: #fff; transition: .3s; display: block;
+    label.assign-toggle-switch input[type=checkbox] {
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        margin: 0 !important;
     }
-    .section-divider {
-        border: none;
-        border-top: 1px solid #e5e7eb;
-        margin: 20px 0;
+    label.assign-toggle-switch .assign-toggle-track {
+        position: absolute !important;
+        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        border-radius: 24px !important;
+        transition: background .3s !important;
+        display: block !important;
+    }
+    label.assign-toggle-switch .assign-toggle-knob {
+        position: absolute !important;
+        height: 18px !important;
+        width: 18px !important;
+        bottom: 3px !important;
+        border-radius: 50% !important;
+        background: #fff !important;
+        transition: left .3s !important;
+        display: block !important;
     }
     .section-heading {
         font-size: 14px;
         font-weight: 700;
         color: #374151;
         margin-bottom: 14px;
+        display: block;
     }
 </style>
 @endpush
