@@ -614,7 +614,7 @@ body {
     <a href="{{ route('forms.index') }}" class="back-btn">← Forms</a>
     <div class="topbar-divider"></div>
     <input class="form-title-input" id="formTitleInput" value="{{ $form->name ?? 'New Form' }}" type="text" placeholder="Form name...">
-    <span class="status-badge {{ ($form->status ?? 'draft') === 'draft' ? 'draft' : '' }}" id="formStatusBadge">{{ ucfirst($form->status ?? 'Draft') }}</span>
+    <span class="status-badge {{ $form->is_active ? '' : 'draft' }}" id="formStatusBadge">{{ $form->is_active ? 'Active' : 'Draft' }}</span>
   </div>
   <div class="topbar-center">
     <button class="tab-btn active" id="tabBuild" onclick="switchTab('build')">✏️ Build</button>
@@ -781,12 +781,10 @@ body {
       <div style="margin-top:14px;padding:12px;background:var(--bg-card);border-radius:8px;">
         <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">
           <strong style="color:var(--text-secondary);">Status:</strong>
-          @if($form->status === 'active')
+          @if($form->is_active)
             <span style="color:var(--green);">✅ Active — Patients can fill this form</span>
-          @elseif($form->status === 'draft')
-            <span style="color:var(--yellow);">⚠️ Draft — Publish the form to make it accessible</span>
           @else
-            <span style="color:var(--text-muted);">Archived</span>
+            <span style="color:var(--yellow);">⚠️ Draft — Publish the form to make it accessible</span>
           @endif
         </div>
       </div>
@@ -877,7 +875,7 @@ function toggleTheme() {
 let formData = {
   title: @json($form->name ?? 'New Form'),
   description: @json($form->description ?? ''),
-  status: @json($form->status ?? 'draft'),
+  status: @json($form->is_active ? 'active' : 'draft'),
   rows: @json(isset($form) && $form->fields && isset($form->fields['rows']) ? $form->fields['rows'] : [])
 };
 

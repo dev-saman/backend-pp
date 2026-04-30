@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $stats = [
             'total_forms' => Form::count(),
-            'active_forms' => Form::where('status', 'active')->count(),
+            'active_forms' => Form::where('is_active', 1)->count(),
             'total_funnels' => Funnel::count(),
             'active_funnels' => Funnel::where('status', 'active')->count(),
             'total_submissions' => FormSubmission::count(),

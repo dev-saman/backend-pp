@@ -19,6 +19,12 @@ class FormController extends Controller
             $query->where('name', 'like', "%{$request->search}%");
         }
 
+        if ($request->status === 'active') {
+            $query->where('is_active', 1);
+        } elseif ($request->status === 'inactive') {
+            $query->where('is_active', 0);
+        }
+
         $forms = $query->latest()->paginate(20);
 
         return view('forms.index', compact('forms'));

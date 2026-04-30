@@ -258,7 +258,7 @@ class FunnelController extends Controller
             return [
                 'id'     => $id,
                 'name'   => $form?->name ?? 'Unknown Form',
-                'status' => $form?->status ?? 'draft',
+                'status' => ($form?->is_active ? 'active' : 'draft'),
                 'slug'   => $form?->slug ?? '',
             ];
         })->filter(fn($s) => $s['name'] !== 'Unknown Form')->values()->toArray();

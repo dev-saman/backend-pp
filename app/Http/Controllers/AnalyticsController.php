@@ -63,7 +63,7 @@ class AnalyticsController extends Controller
             'total_forms'         => Form::count(),
             'total_submissions'   => $allSubmissions,
             'total_drafts'        => $allDrafts,
-            'active_forms'        => Form::where('status', 'active')->count(),
+            'active_forms'        => Form::where('is_active', 1)->count(),
             'avg_completion_rate' => $allSubmissions > 0
                 ? round((($allSubmissions - $allDrafts) / $allSubmissions) * 100)
                 : 0,
@@ -129,7 +129,7 @@ class AnalyticsController extends Controller
             'total_submissions'     => $totalSubmissions,
             'new_submissions'       => $newSubmissions,
             'total_forms'           => Form::count(),
-            'active_forms'          => Form::where('status', 'active')->count(),
+            'active_forms'          => Form::where('is_active', 1)->count(),
             'total_funnels'         => Funnel::count(),
             'active_funnels'        => Funnel::where('status', 'active')->count(),
             'submissions_by_status' => $submissionsByStatus,

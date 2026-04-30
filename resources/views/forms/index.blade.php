@@ -96,9 +96,8 @@
             </div>
             <select name="status" class="form-control" style="width:160px; padding:10px 14px;">
                 <option value="">All Statuses</option>
-                <option value="draft"    {{ request('status') === 'draft'    ? 'selected' : '' }}>Draft</option>
-                <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
-                <option value="archived" {{ request('status') === 'archived' ? 'selected' : '' }}>Archived</option>
+                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
             <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
         </form>
