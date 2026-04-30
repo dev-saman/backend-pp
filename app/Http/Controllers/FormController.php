@@ -186,6 +186,22 @@ class FormController extends Controller
     }
 
     /**
+     * AJAX: Toggle form status between active and draft
+     * Route: POST /forms/{form}/toggle-status
+     */
+    public function toggleStatus(Form $form)
+    {
+        $form->status = ($form->status === 'active') ? 'draft' : 'active';
+        $form->save();
+
+        return response()->json([
+            'status'     => 'success',
+            'new_status' => $form->status,
+            'message'    => 'Form status updated to ' . $form->status . '.',
+        ]);
+    }
+
+    /**
      * Public form page — accessible by patients via the form's slug URL
      * Route: GET /f/{slug}
      */

@@ -12,6 +12,34 @@
 
 @section('content')
 <style>
+/* ── Status Toggle ─────────────────────────────────────────── */
+.status-toggle-wrap {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+.status-toggle-track {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: 24px;
+    background: #d1d5db;
+    transition: background .25s;
+    flex-shrink: 0;
+}
+.status-toggle-track.active { background: #C8102E; }
+.status-toggle-knob {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    transition: left .25s;
+}
+.status-toggle-track.active .status-toggle-knob { left: 21px; }
+
 /* ── Delete Confirmation Modal ─────────────────────────────── */
 #delete-modal-overlay {
     display: none;
@@ -22,9 +50,7 @@
     align-items: center;
     justify-content: center;
 }
-#delete-modal-overlay.open {
-    display: flex;
-}
+#delete-modal-overlay.open { display: flex; }
 #delete-modal {
     background: #fff;
     border-radius: 14px;
@@ -43,51 +69,20 @@
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 16px;
 }
-#delete-modal .modal-icon i {
-    font-size: 24px;
-    color: #dc2626;
-}
-#delete-modal h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 8px;
-}
-#delete-modal p {
-    font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 24px;
-    line-height: 1.5;
-}
-#delete-modal .modal-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
+#delete-modal .modal-icon i { font-size: 24px; color: #dc2626; }
+#delete-modal h3 { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 8px; }
+#delete-modal p { font-size: 14px; color: #6b7280; margin-bottom: 24px; line-height: 1.5; }
+#delete-modal .modal-actions { display: flex; gap: 12px; justify-content: center; }
 #delete-modal .btn-cancel-modal {
-    flex: 1;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #374151;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
+    flex: 1; padding: 10px 20px; border-radius: 8px;
+    border: 1px solid #e5e7eb; background: #fff; color: #374151;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: background .15s;
 }
 #delete-modal .btn-cancel-modal:hover { background: #f9fafb; }
 #delete-modal .btn-confirm-delete {
-    flex: 1;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    background: #dc2626;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
+    flex: 1; padding: 10px 20px; border-radius: 8px;
+    border: none; background: #dc2626; color: #fff;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: background .15s;
 }
 #delete-modal .btn-confirm-delete:hover { background: #b91c1c; }
 </style>
@@ -101,8 +96,8 @@
             </div>
             <select name="status" class="form-control" style="width:160px; padding:10px 14px;">
                 <option value="">All Statuses</option>
-                <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
-                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="draft"    {{ request('status') === 'draft'    ? 'selected' : '' }}>Draft</option>
+                <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Active</option>
                 <option value="archived" {{ request('status') === 'archived' ? 'selected' : '' }}>Archived</option>
             </select>
             <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Filter</button>
@@ -113,8 +108,7 @@
             <thead>
                 <tr>
                     <th>Form Name</th>
-                    <th>Category</th>
-                    <th>Status</th>
+                    <th style="width:90px; text-align:center;">Status</th>
                     <th>Submissions</th>
                     <th>Created By</th>
                     <th>Created</th>
@@ -123,17 +117,20 @@
             </thead>
             <tbody>
                 @forelse($forms as $form)
-                <tr>
+                <tr id="form-row-{{ $form->id }}">
                     <td>
                         <div style="font-weight:600;">{{ $form->name }}</div>
                         @if($form->description)
                             <div style="font-size:12px; color:#6b7280;">{{ Str::limit($form->description, 60) }}</div>
                         @endif
                     </td>
-                    <td style="font-size:13px;">{{ $form->category ?? '—' }}</td>
-                    <td>
-                        <span class="badge {{ $form->status === 'active' ? 'badge-success' : ($form->status === 'draft' ? 'badge-warning' : 'badge-secondary') }}">
-                            {{ ucfirst($form->status) }}
+                    <td style="text-align:center;">
+                        <span class="status-toggle-wrap"
+                              onclick="toggleFormStatus({{ $form->id }}, this)"
+                              title="{{ $form->status === 'active' ? 'Active — click to set Draft' : 'Draft — click to set Active' }}">
+                            <span class="status-toggle-track {{ $form->status === 'active' ? 'active' : '' }}">
+                                <span class="status-toggle-knob"></span>
+                            </span>
                         </span>
                     </td>
                     <td style="font-size:13px; color:#6b7280;">{{ $form->submission_count }}</td>
@@ -143,7 +140,6 @@
                         <div style="display:flex; gap:8px;">
                             <a href="{{ route('forms.show', $form) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i></a>
                             <a href="{{ route('forms.edit', $form) }}" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i></a>
-                            {{-- Hidden delete form --}}
                             <form id="delete-form-{{ $form->id }}" method="POST" action="{{ route('forms.destroy', $form) }}" style="display:none;">
                                 @csrf @method('DELETE')
                             </form>
@@ -157,7 +153,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" style="text-align:center; padding:48px; color:#9ca3af;">
+                    <td colspan="6" style="text-align:center; padding:48px; color:#9ca3af;">
                         <i class="fas fa-wpforms" style="font-size:36px; display:block; margin-bottom:12px;"></i>
                         No forms yet. <a href="{{ route('forms.create') }}" style="color:#C8102E;">Create your first form</a>
                     </td>
@@ -187,6 +183,7 @@
 </div>
 
 <script>
+// ── Delete Modal ──────────────────────────────────────────────
 var _deleteFormId = null;
 
 function openDeleteModal(formId, formName) {
@@ -207,14 +204,46 @@ function confirmDelete() {
     }
 }
 
-// Close modal when clicking outside
 document.getElementById('delete-modal-overlay').addEventListener('click', function(e) {
     if (e.target === this) closeDeleteModal();
 });
-
-// Close on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeDeleteModal();
 });
+
+// ── Status Toggle ─────────────────────────────────────────────
+function toggleFormStatus(formId, wrapEl) {
+    var track = wrapEl.querySelector('.status-toggle-track');
+    var isActive = track.classList.contains('active');
+
+    // Optimistic UI update
+    track.classList.toggle('active');
+    wrapEl.title = isActive ? 'Draft — click to set Active' : 'Active — click to set Draft';
+
+    fetch('/forms/' + formId + '/toggle-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.status === 'success') {
+            showGlobalToast('Status updated to ' + res.new_status + '.', 'success');
+        } else {
+            // Revert on failure
+            track.classList.toggle('active');
+            wrapEl.title = isActive ? 'Active — click to set Draft' : 'Draft — click to set Active';
+            showGlobalToast('Failed to update status.', 'error');
+        }
+    })
+    .catch(function() {
+        track.classList.toggle('active');
+        wrapEl.title = isActive ? 'Active — click to set Draft' : 'Draft — click to set Active';
+        showGlobalToast('Failed to update status.', 'error');
+    });
+}
 </script>
 @endsection
