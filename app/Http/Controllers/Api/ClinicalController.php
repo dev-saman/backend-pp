@@ -25,13 +25,11 @@ class ClinicalController extends Controller
 
             $data = $response->json();
 
-foreach ($data as &$item) {
-    if (isset($item['decoded_json'][0]) && is_array($item['decoded_json'][0])) {
-        $item['decoded_json'] = $item['decoded_json'][0];
-    }
-}
-
-            
+            foreach ($data as &$item) {
+                if (isset($item['decoded_json'][0]) && is_array($item['decoded_json'][0])) {
+                    $item['decoded_json'] = $item['decoded_json'][0];
+                }
+            }
 
             if ($response->failed()) {
                 return response()->json([
