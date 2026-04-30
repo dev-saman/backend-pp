@@ -118,33 +118,36 @@
 
                     {{-- Role toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;">Role</span>
-                        <div id="role_track" onclick="assignToggleClick('role')"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">Role</span>
+                        <div id="role_track"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
+                             onclick="assignToggleClick(event,'role')">
                             <span id="role_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_role_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_role_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
                         </div>
                         <input type="hidden" name="assign_role_enabled" id="assign_role_hidden" value="{{ old('assign_role_enabled') ? '1' : '0' }}">
                     </div>
 
                     {{-- User toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;">User</span>
-                        <div id="user_track" onclick="assignToggleClick('user')"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">User</span>
+                        <div id="user_track"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
+                             onclick="assignToggleClick(event,'user')">
                             <span id="user_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_user_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_user_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
                         </div>
                         <input type="hidden" name="assign_user_enabled" id="assign_user_hidden" value="{{ old('assign_user_enabled') ? '1' : '0' }}">
                     </div>
 
                     {{-- Public toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;">Public</span>
-                        <div id="public_track" onclick="assignToggleClick('public')"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;transition:background .3s;background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;">
+                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">Public</span>
+                        <div id="public_track"
+                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
+                             onclick="assignToggleClick(event,'public')">
                             <span id="public_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_public_enabled') ? '23px' : '3px' }};transition:left .3s;display:block;"></span>
+                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_public_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
                         </div>
                         <input type="hidden" name="assign_public_enabled" id="assign_public_hidden" value="{{ old('assign_public_enabled') ? '1' : '0' }}">
                     </div>
@@ -221,7 +224,8 @@
         public: {{ old('assign_public_enabled') ? 'true' : 'false' }}
     };
 
-    function assignToggleClick(type) {
+    function assignToggleClick(e, type) {
+        e.stopPropagation();
         // Public is mutually exclusive with Role/User
         if (type === 'public' && !toggleState['public']) {
             setToggle('role', false);
