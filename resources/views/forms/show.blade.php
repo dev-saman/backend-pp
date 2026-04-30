@@ -94,21 +94,25 @@
     color: #374151;
     font-size: 14px;
     font-family: inherit;
-    pointer-events: none;
+    outline: none;
+    transition: border-color .15s;
 }
+.pv-input:focus { border-color: #8B1A1A; background: #fff; box-shadow: 0 0 0 3px rgba(139,26,26,0.1); }
 .pv-textarea {
     width: 100%;
     padding: 10px 14px;
     height: 100px;
-    resize: none;
+    resize: vertical;
     background: #f9fafb;
     border: 1.5px solid #e5e7eb;
     border-radius: 9px;
     color: #374151;
     font-size: 14px;
     font-family: inherit;
-    pointer-events: none;
+    outline: none;
+    transition: border-color .15s;
 }
+.pv-textarea:focus { border-color: #8B1A1A; background: #fff; box-shadow: 0 0 0 3px rgba(139,26,26,0.1); }
 .pv-select {
     width: 100%;
     padding: 10px 14px;
@@ -118,8 +122,11 @@
     color: #374151;
     font-size: 14px;
     font-family: inherit;
-    pointer-events: none;
+    outline: none;
+    cursor: pointer;
+    transition: border-color .15s;
 }
+.pv-select:focus { border-color: #8B1A1A; background: #fff; box-shadow: 0 0 0 3px rgba(139,26,26,0.1); }
 
 /* Choice */
 .pv-choice-group { display: flex; flex-direction: column; gap: 8px; }
@@ -133,25 +140,33 @@
     background: #f9fafb;
     font-size: 14px;
     color: #374151;
-    pointer-events: none;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
 }
-.pv-choice-item input { accent-color: #8B1A1A; width: 15px; height: 15px; }
+.pv-choice-item:hover { border-color: #8B1A1A; background: #fdf2f2; }
+.pv-choice-item input { accent-color: #8B1A1A; width: 15px; height: 15px; cursor: pointer; }
 
 /* Toggle */
 .pv-toggle-row { display: flex; align-items: center; justify-content: space-between; }
 .pv-toggle-track {
     width: 44px; height: 24px; border-radius: 24px;
     background: #e5e7eb; position: relative; flex-shrink: 0;
+    cursor: pointer; transition: background .2s;
 }
+.pv-toggle-track.on { background: #8B1A1A; }
 .pv-toggle-knob {
     position: absolute; top: 3px; left: 3px;
     width: 18px; height: 18px; border-radius: 50%;
     background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    transition: left .2s;
 }
+.pv-toggle-track.on .pv-toggle-knob { left: 23px; }
 
 /* Rating */
 .pv-rating { display: flex; gap: 6px; }
-.pv-star { font-size: 28px; color: #e5e7eb; line-height: 1; }
+.pv-star { font-size: 28px; color: #e5e7eb; line-height: 1; cursor: pointer; transition: color .1s, transform .1s; }
+.pv-star.active { color: #f59e0b; }
+.pv-star:hover { transform: scale(1.15); }
 
 /* Scale */
 .pv-scale { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -160,7 +175,9 @@
     border: 1.5px solid #e5e7eb; background: #f9fafb;
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 600; color: #9ca3af;
+    cursor: pointer; transition: all .15s;
 }
+.pv-scale-num:hover, .pv-scale-num.selected { border-color: #8B1A1A; background: #8B1A1A; color: #fff; }
 .pv-scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; margin-top: 5px; }
 
 /* Signature */
@@ -213,23 +230,13 @@
 .pv-submit-btn {
     width: 100%; padding: 13px 24px; border-radius: 10px;
     border: none; background: #8B1A1A; color: #fff;
-    font-size: 15px; font-weight: 700; cursor: not-allowed;
-    opacity: 0.85; font-family: inherit;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: background .15s;
 }
+.pv-submit-btn:hover { background: #6b1414; }
 
-/* Preview notice */
-.preview-notice {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 13px;
-    color: #92400e;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+/* Preview notice - hidden */
+.preview-notice { display: none; }
 
 @media (max-width: 600px) {
     .pv-card-header, .pv-card-body { padding: 22px 18px; }
@@ -250,11 +257,7 @@
         <span class="preview-meta-item"><i class="fas fa-clock" style="margin-right:4px;"></i>Created {{ $form->created_at->format('M d, Y') }}</span>
     </div>
 
-    {{-- Preview notice --}}
-    <div class="preview-notice">
-        <i class="fas fa-eye"></i>
-        <span>This is a <strong>read-only preview</strong> of the form as patients will see it. Fields are not interactive.</span>
-    </div>
+
 
     {{-- Form card --}}
     <div class="pv-card">
@@ -303,7 +306,7 @@ function renderPreview() {
     // Append submit button at bottom
     const submitWrap = document.createElement('div');
     submitWrap.style.marginTop = '16px';
-    submitWrap.innerHTML = `<button class="pv-submit-btn" disabled>Submit Form</button>`;
+    submitWrap.innerHTML = `<button class="pv-submit-btn" type="button" onclick="alert('This is a preview — form submission is disabled.')">Submit Form</button>`;
     container.appendChild(submitWrap);
 }
 
@@ -330,17 +333,17 @@ function renderField(field) {
             break;
         case 'text': case 'email': case 'phone': case 'number': case 'date': case 'time': case 'password':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
-                <input class="pv-input" type="${field.type === 'phone' ? 'tel' : field.type}" placeholder="${esc(field.placeholder || '')}" readonly tabindex="-1">
+                <input class="pv-input" type="${field.type === 'phone' ? 'tel' : field.type}" placeholder="${esc(field.placeholder || '')}">
                 ${field.helpText ? `<div class="pv-help">${esc(field.helpText)}</div>` : ''}`;
             break;
         case 'textarea':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
-                <textarea class="pv-textarea" placeholder="${esc(field.placeholder || '')}" readonly tabindex="-1"></textarea>
+                <textarea class="pv-textarea" placeholder="${esc(field.placeholder || '')}"></textarea>
                 ${field.helpText ? `<div class="pv-help">${esc(field.helpText)}</div>` : ''}`;
             break;
         case 'dropdown':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
-                <select class="pv-select" disabled tabindex="-1">
+                <select class="pv-select">
                     <option>${esc(field.placeholder || 'Select an option...')}</option>
                     ${(field.options || []).map(o => `<option>${esc(o)}</option>`).join('')}
                 </select>
@@ -349,29 +352,29 @@ function renderField(field) {
         case 'radio':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
                 <div class="pv-choice-group">
-                    ${(field.options || []).map(o => `<div class="pv-choice-item"><input type="radio" disabled><span>${esc(o)}</span></div>`).join('')}
+                    ${(field.options || []).map((o, i) => `<div class="pv-choice-item" onclick="this.querySelector('input').click()"><input type="radio" name="pv_r_${field.id}" value="${esc(o)}"><span>${esc(o)}</span></div>`).join('')}
                 </div>`;
             break;
         case 'checkbox':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
                 <div class="pv-choice-group">
-                    ${(field.options || []).map(o => `<div class="pv-choice-item"><input type="checkbox" disabled><span>${esc(o)}</span></div>`).join('')}
+                    ${(field.options || []).map((o, i) => `<div class="pv-choice-item" onclick="this.querySelector('input').click()"><input type="checkbox" value="${esc(o)}"><span>${esc(o)}</span></div>`).join('')}
                 </div>
                 ${field.helpText ? `<div class="pv-help">${esc(field.helpText)}</div>` : ''}`;
             break;
         case 'toggle':
             wrap.innerHTML = `<div class="pv-toggle-row">
                 <label class="pv-label" style="margin:0;">${esc(field.label)}${req}</label>
-                <div class="pv-toggle-track"><div class="pv-toggle-knob"></div></div>
+                <div class="pv-toggle-track" id="pvtgl_${field.id}" onclick="pvToggle('${field.id}')"><div class="pv-toggle-knob"></div></div>
             </div>`;
             break;
         case 'rating':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
-                <div class="pv-rating">${[1,2,3,4,5].map(() => `<span class="pv-star">★</span>`).join('')}</div>`;
+                <div class="pv-rating" id="pvrat_${field.id}">${[1,2,3,4,5].map((n) => `<span class="pv-star" data-val="${n}" onclick="pvSetRating('${field.id}', ${n})">★</span>`).join('')}</div>`;
             break;
         case 'scale':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
-                <div class="pv-scale">${[1,2,3,4,5,6,7,8,9,10].map(n => `<div class="pv-scale-num">${n}</div>`).join('')}</div>
+                <div class="pv-scale" id="pvscl_${field.id}">${[1,2,3,4,5,6,7,8,9,10].map(n => `<div class="pv-scale-num" data-val="${n}" onclick="pvSetScale('${field.id}', ${n})">${n}</div>`).join('')}</div>
                 <div class="pv-scale-labels"><span>Not at all</span><span>Extremely</span></div>`;
             break;
         case 'signature':
@@ -390,28 +393,44 @@ function renderField(field) {
         case 'address':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <input class="pv-input" placeholder="Street Address" readonly tabindex="-1">
+                    <input class="pv-input" placeholder="Street Address">
                     <div class="pv-addr-row">
-                        <input class="pv-input" placeholder="City" readonly tabindex="-1">
-                        <input class="pv-input" style="max-width:90px;" placeholder="State" readonly tabindex="-1">
-                        <input class="pv-input" style="max-width:100px;" placeholder="ZIP Code" readonly tabindex="-1">
+                        <input class="pv-input" placeholder="City">
+                        <input class="pv-input" style="max-width:90px;" placeholder="State">
+                        <input class="pv-input" style="max-width:100px;" placeholder="ZIP Code">
                     </div>
                 </div>`;
             break;
         case 'name':
             wrap.innerHTML = `<label class="pv-label">${esc(field.label)}${req}</label>
                 <div class="pv-name-row">
-                    <input class="pv-input" placeholder="First Name" readonly tabindex="-1">
-                    <input class="pv-input" placeholder="Last Name" readonly tabindex="-1">
+                    <input class="pv-input" placeholder="First Name">
+                    <input class="pv-input" placeholder="Last Name">
                 </div>`;
             break;
         default:
             wrap.innerHTML = `<label class="pv-label">${esc(field.label || field.type)}${req}</label>
-                <input class="pv-input" type="text" placeholder="${esc(field.placeholder || '')}" readonly tabindex="-1">`;
-    }
-    return wrap;
+                <input class="pv-input" type="text" placeholder="${esc(field.placeholder || '')}">`;
+            break;rap;
 }
 
 renderPreview();
+
+function pvToggle(id) {
+    const track = document.getElementById('pvtgl_' + id);
+    if (track) track.classList.toggle('on');
+}
+
+function pvSetRating(id, val) {
+    document.querySelectorAll('#pvrat_' + id + ' .pv-star').forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+    });
+}
+
+function pvSetScale(id, val) {
+    document.querySelectorAll('#pvscl_' + id + ' .pv-scale-num').forEach(n => {
+        n.classList.toggle('selected', parseInt(n.dataset.val) === val);
+    });
+}
 </script>
 @endsection
