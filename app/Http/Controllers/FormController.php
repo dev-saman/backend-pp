@@ -33,21 +33,21 @@ class FormController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'description'    => 'nullable|string',
-
-            'success_msg'    => 'nullable|string',
-            'thanks_msg'     => 'nullable|string',
-            'assign_type'    => 'nullable|string|max:100',
-            'assign_user_id' => 'nullable|integer|exists:users,id',
+            'name'             => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'success_msg'      => 'nullable|string',
+            'thanks_msg'       => 'nullable|string',
+            'assign_type'      => 'nullable|string|max:100',
+            'assign_user_id'   => 'nullable|integer',
+            'email'            => 'nullable|email|max:255',
+            'ccemail'          => 'nullable|string',
+            'bccemail'         => 'nullable|string',
         ]);
 
         $validated['created_by'] = Auth::id();
         $validated['slug']       = Str::slug($validated['name']) . '-' . Str::random(6);
         $validated['fields']     = [];
 
-        // assign_type is passed directly as 'role', 'user', or 'public'
-        // If not 'user', clear assign_user_id since no user is being assigned
         if (($validated['assign_type'] ?? '') !== 'user') {
             $validated['assign_user_id'] = null;
         }
@@ -85,6 +85,9 @@ class FormController extends Controller
             'assign_type'      => 'nullable|string|in:role,user,public,',
             'assign_role_value'=> 'nullable|string',
             'assign_user_id'   => 'nullable|integer',
+            'email'            => 'nullable|email|max:255',
+            'ccemail'          => 'nullable|string',
+            'bccemail'         => 'nullable|string',
         ]);
 
         if (empty($form->slug)) {
@@ -96,6 +99,9 @@ class FormController extends Controller
         $form->success_msg = $validated['success_msg'] ?? null;
         $form->thanks_msg  = $validated['thanks_msg'] ?? null;
         $form->assign_type = $validated['assign_type'] ?? null;
+        $form->email       = $validated['email'] ?? null;
+        $form->ccemail     = $validated['ccemail'] ?? null;
+        $form->bccemail    = $validated['bccemail'] ?? null;
 
         if (($validated['assign_type'] ?? '') === 'user') {
             $form->assign_user_id = $validated['assign_user_id'] ?? null;
