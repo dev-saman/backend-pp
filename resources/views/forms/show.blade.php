@@ -411,7 +411,9 @@ function renderField(field) {
         default:
             wrap.innerHTML = `<label class="pv-label">${esc(field.label || field.type)}${req}</label>
                 <input class="pv-input" type="text" placeholder="${esc(field.placeholder || '')}">`;
-            break;rap;
+            break;
+    }
+    return wrap;
 }
 
 renderPreview();
