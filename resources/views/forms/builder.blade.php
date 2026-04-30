@@ -1307,18 +1307,17 @@ function saveForm(showNotification = true) {
   .then(res => {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save'; }
     if (res.status === 'success' || res.id) {
-      if (showNotification) showToast('✅ Form saved successfully!', 'success');
-      // If newly created, update URL to the edit URL
-      if (res.id && !formId) {
-        window.history.replaceState({}, '', `/forms/${res.id}/builder`);
+      if (showNotification) {
+        showToast('Form saved successfully!', 'success');
+        setTimeout(function() { window.location.href = '/forms'; }, 1200);
       }
     } else {
-      if (showNotification) showToast('❌ Save failed: ' + (res.message || 'Unknown error'), 'error');
+      if (showNotification) showToast('Save failed: ' + (res.message || 'Unknown error'), 'error');
     }
   })
   .catch(err => {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save'; }
-    if (showNotification) showToast('❌ Save failed. Please try again.', 'error');
+    if (showNotification) showToast('Save failed. Please try again.', 'error');
     console.error('Save error:', err);
   });
 }
@@ -1332,7 +1331,43 @@ function publishForm() {
   formData.status = 'active';
   document.getElementById('formStatusBadge').textContent = 'Published';
   document.getElementById('formStatusBadge').className = 'status-badge';
-  saveForm();
+  const saveBtn = document.getElementById('saveBtn');
+  const publishBtn = document.querySelector('[onclick="publishForm()"]');
+  if (publishBtn) { publishBtn.disabled = true; publishBtn.textContent = 'Publishing…'; }
+
+  const payload = {
+    name:        formData.title,
+    description: formData.description,
+    status:      'active',
+    schema:      JSON.stringify({ rows: formData.rows }),
+  };
+  const formId = {{ isset($form) ? $form->id : 'null' }};
+  const url = formId ? `/forms/${formId}/schema` : '/forms';
+
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = '🚀 Publish'; }
+    if (res.status === 'success' || res.id) {
+      showToast('Form published successfully!', 'success');
+      setTimeout(function() { window.location.href = '/forms'; }, 1200);
+    } else {
+      showToast('Publish failed: ' + (res.message || 'Unknown error'), 'error');
+    }
+  })
+  .catch(err => {
+    if (publishBtn) { publishBtn.disabled = false; publishBtn.textContent = '🚀 Publish'; }
+    showToast('Publish failed. Please try again.', 'error');
+    console.error('Publish error:', err);
+  });
 }
 
 function filterPalette(query) {
