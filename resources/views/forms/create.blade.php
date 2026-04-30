@@ -23,6 +23,9 @@
         <form method="POST" action="{{ route('forms.store') }}">
             @csrf
 
+            {{-- Single hidden field that holds the assign_type value: role | user | public --}}
+            <input type="hidden" name="assign_type" id="assign_type_hidden" value="{{ old('assign_type', 'role') }}">
+
             {{-- Form Name --}}
             <div class="form-group">
                 <label class="form-label">Form Name <span style="color:#ef4444;">*</span></label>
@@ -56,17 +59,17 @@
                 <label class="form-label" style="font-weight:700;color:#374151;display:block;margin-bottom:12px;">Assign Form</label>
                 <div style="display:flex;align-items:center;gap:40px;flex-wrap:nowrap;margin-bottom:16px;">
 
-                    {{-- Role toggle ON by default --}}
+                    {{-- Role toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:14px;font-weight:500;color:#374151;">Role</span>
                         <label class="af-toggle-switch">
-                            <input type="checkbox" id="assign_role_chk" name="assign_role_enabled" value="1"
-                                   {{ old('assign_role_enabled', '1') ? 'checked' : '' }}
+                            <input type="checkbox" id="assign_role_chk"
+                                   {{ old('assign_type', 'role') === 'role' ? 'checked' : '' }}
                                    onchange="afToggleChanged('role', this)">
                             <span class="af-toggle-track" id="role_track"
-                                  style="background:{{ old('assign_role_enabled', '1') ? '#C8102E' : '#d1d5db' }};">
+                                  style="background:{{ old('assign_type', 'role') === 'role' ? '#C8102E' : '#d1d5db' }};">
                                 <span class="af-toggle-knob" id="role_knob"
-                                      style="left:{{ old('assign_role_enabled', '1') ? '23px' : '3px' }};"></span>
+                                      style="left:{{ old('assign_type', 'role') === 'role' ? '23px' : '3px' }};"></span>
                             </span>
                         </label>
                     </div>
@@ -75,13 +78,13 @@
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:14px;font-weight:500;color:#374151;">User</span>
                         <label class="af-toggle-switch">
-                            <input type="checkbox" id="assign_user_chk" name="assign_user_enabled" value="1"
-                                   {{ old('assign_user_enabled') ? 'checked' : '' }}
+                            <input type="checkbox" id="assign_user_chk"
+                                   {{ old('assign_type') === 'user' ? 'checked' : '' }}
                                    onchange="afToggleChanged('user', this)">
                             <span class="af-toggle-track" id="user_track"
-                                  style="background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                  style="background:{{ old('assign_type') === 'user' ? '#C8102E' : '#d1d5db' }};">
                                 <span class="af-toggle-knob" id="user_knob"
-                                      style="left:{{ old('assign_user_enabled') ? '23px' : '3px' }};"></span>
+                                      style="left:{{ old('assign_type') === 'user' ? '23px' : '3px' }};"></span>
                             </span>
                         </label>
                     </div>
@@ -90,34 +93,34 @@
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:14px;font-weight:500;color:#374151;">Public</span>
                         <label class="af-toggle-switch">
-                            <input type="checkbox" id="assign_public_chk" name="assign_public_enabled" value="1"
-                                   {{ old('assign_public_enabled') ? 'checked' : '' }}
+                            <input type="checkbox" id="assign_public_chk"
+                                   {{ old('assign_type') === 'public' ? 'checked' : '' }}
                                    onchange="afToggleChanged('public', this)">
                             <span class="af-toggle-track" id="public_track"
-                                  style="background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                  style="background:{{ old('assign_type') === 'public' ? '#C8102E' : '#d1d5db' }};">
                                 <span class="af-toggle-knob" id="public_knob"
-                                      style="left:{{ old('assign_public_enabled') ? '23px' : '3px' }};"></span>
+                                      style="left:{{ old('assign_type') === 'public' ? '23px' : '3px' }};"></span>
                             </span>
                         </label>
                     </div>
 
                 </div>
 
-                {{-- Role dropdown --}}
-                <div id="role_field" style="{{ old('assign_role_enabled', '1') ? '' : 'display:none;' }}">
+                {{-- Role dropdown (visible when assign_type = role) --}}
+                <div id="role_field" style="{{ old('assign_type', 'role') === 'role' ? '' : 'display:none;' }}">
                     <div class="form-group" style="margin-top:10px;">
                         <label class="form-label">Role</label>
-                        <select name="assign_type" class="form-control">
+                        <select name="assign_role_value" class="form-control">
                             <option value="">Select Role</option>
-                            <option value="admin"       {{ old('assign_type') === 'admin'       ? 'selected' : '' }}>Admin</option>
-                            <option value="super_admin" {{ old('assign_type') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
-                            <option value="user"        {{ old('assign_type') === 'user'        ? 'selected' : '' }}>User</option>
+                            <option value="admin"       {{ old('assign_role_value') === 'admin'       ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('assign_role_value') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                            <option value="user"        {{ old('assign_role_value') === 'user'        ? 'selected' : '' }}>User</option>
                         </select>
                     </div>
                 </div>
 
-                {{-- User dropdown --}}
-                <div id="user_field" style="{{ old('assign_user_enabled') ? '' : 'display:none;' }}">
+                {{-- User dropdown (visible when assign_type = user) --}}
+                <div id="user_field" style="{{ old('assign_type') === 'user' ? '' : 'display:none;' }}">
                     <div class="form-group" style="margin-top:10px;">
                         <label class="form-label">Select User</label>
                         <select name="assign_user_id" class="form-control">
@@ -183,13 +186,18 @@
                     }
                 }
             });
+            // Set the hidden assign_type value
+            document.getElementById('assign_type_hidden').value = type;
+        } else {
+            // If turning OFF, clear the hidden field
+            document.getElementById('assign_type_hidden').value = '';
         }
 
         afSetVisual(type, on);
 
         if (type === 'role') {
             document.getElementById('role_field').style.display = on ? '' : 'none';
-            if (!on) document.querySelector('select[name="assign_type"]').value = '';
+            if (!on) document.querySelector('select[name="assign_role_value"]').value = '';
         }
         if (type === 'user') {
             document.getElementById('user_field').style.display = on ? '' : 'none';
@@ -207,7 +215,7 @@
     function afHideField(type) {
         if (type === 'role') {
             document.getElementById('role_field').style.display = 'none';
-            document.querySelector('select[name="assign_type"]').value = '';
+            document.querySelector('select[name="assign_role_value"]').value = '';
         }
         if (type === 'user') {
             document.getElementById('user_field').style.display = 'none';

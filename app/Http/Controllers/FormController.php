@@ -52,14 +52,9 @@ class FormController extends Controller
         $validated['slug']       = Str::slug($validated['name']) . '-' . Str::random(6);
         $validated['fields']     = [];
 
-        // Determine assign_type based on toggles
-        if ($request->boolean('assign_public_enabled')) {
-            $validated['assign_type']    = 'public';
-            $validated['assign_user_id'] = null;
-        } elseif ($request->boolean('assign_user_enabled')) {
-            $validated['assign_type']    = 'user';
-        } elseif (!$request->boolean('assign_role_enabled')) {
-            $validated['assign_type']    = null;
+        // assign_type is passed directly as 'role', 'user', or 'public'
+        // If not 'user', clear assign_user_id since no user is being assigned
+        if (($validated['assign_type'] ?? '') !== 'user') {
             $validated['assign_user_id'] = null;
         }
 
