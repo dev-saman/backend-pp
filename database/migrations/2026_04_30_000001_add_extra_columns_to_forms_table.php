@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('forms', function (Blueprint $table) {
             // slug already exists in the live DB — only add if missing
             if (!Schema::hasColumn('forms', 'slug')) {
-                $table->string('slug')->nullable()->unique()->after('name');
+                $table->string('slug')->nullable()->unique()->after('description');
             }
 
             // Email / branding columns
