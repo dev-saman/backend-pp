@@ -135,29 +135,6 @@
                 </div>
             </div>
 
-            {{-- Category & Status --}}
-            <div class="form-grid">
-                <div class="form-group">
-                    <label class="form-label">Category</label>
-                    <select name="category" class="form-control">
-                        <option value="">Select Category</option>
-                        <option value="intake"         {{ old('category') === 'intake'         ? 'selected' : '' }}>Patient Intake</option>
-                        <option value="consent"        {{ old('category') === 'consent'        ? 'selected' : '' }}>Consent Form</option>
-                        <option value="follow-up"      {{ old('category') === 'follow-up'      ? 'selected' : '' }}>Follow-up</option>
-                        <option value="health-history" {{ old('category') === 'health-history' ? 'selected' : '' }}>Health History</option>
-                        <option value="hipaa"          {{ old('category') === 'hipaa'          ? 'selected' : '' }}>HIPAA</option>
-                        <option value="other"          {{ old('category') === 'other'          ? 'selected' : '' }}>Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-control">
-                        <option value="draft"  {{ old('status', 'draft') === 'draft'  ? 'selected' : '' }}>Draft</option>
-                        <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
-                    </select>
-                </div>
-            </div>
-
             {{-- Submit buttons --}}
             <div style="display:flex; gap:12px; margin-top:8px;">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Form</button>

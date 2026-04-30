@@ -11,7 +11,7 @@ class Form extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'description', 'fields', 'status', 'category', 'created_by', 'submission_count',
+        'name', 'slug', 'description', 'fields', 'created_by', 'submission_count',
         'success_msg', 'thanks_msg',
         'assign_type', 'assign_user_id',
         'logo', 'bccemail', 'email', 'ccemail',

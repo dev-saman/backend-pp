@@ -39,8 +39,7 @@ class FormController extends Controller
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'description'    => 'nullable|string',
-            'category'       => 'nullable|string|max:100',
-            'status'         => 'nullable|in:draft,active,archived',
+
             'success_msg'    => 'nullable|string',
             'thanks_msg'     => 'nullable|string',
             'assign_type'    => 'nullable|string|max:100',
@@ -48,7 +47,6 @@ class FormController extends Controller
         ]);
 
         $validated['created_by'] = Auth::id();
-        $validated['status']     = $validated['status'] ?? 'draft';
         $validated['slug']       = Str::slug($validated['name']) . '-' . Str::random(6);
         $validated['fields']     = [];
 
@@ -85,8 +83,7 @@ class FormController extends Controller
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category'    => 'nullable|string|max:100',
-            'status'      => 'nullable|in:draft,active,archived',
+
         ]);
 
         if (empty($form->slug)) {
