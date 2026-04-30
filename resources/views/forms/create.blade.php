@@ -8,72 +8,13 @@
     </a>
 @endsection
 
-@push('styles')
-<style>
-    .assign-toggle-row {
-        display: flex !important;
-        align-items: center !important;
-        gap: 40px !important;
-        margin-bottom: 16px !important;
-        flex-wrap: nowrap !important;
-    }
-    .assign-toggle-item {
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-    }
-    .assign-toggle-item .toggle-label {
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        color: #374151 !important;
-        white-space: nowrap !important;
-    }
-    /* Toggle switch */
-    label.assign-toggle-switch {
-        position: relative !important;
-        display: inline-block !important;
-        width: 44px !important;
-        height: 24px !important;
-        cursor: pointer !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        vertical-align: middle !important;
-    }
-    label.assign-toggle-switch input[type=checkbox] {
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        position: absolute !important;
-        margin: 0 !important;
-    }
-    label.assign-toggle-switch .assign-toggle-track {
-        position: absolute !important;
-        top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-        border-radius: 24px !important;
-        transition: background .3s !important;
-        display: block !important;
-    }
-    label.assign-toggle-switch .assign-toggle-knob {
-        position: absolute !important;
-        height: 18px !important;
-        width: 18px !important;
-        bottom: 3px !important;
-        border-radius: 50% !important;
-        background: #fff !important;
-        transition: left .3s !important;
-        display: block !important;
-    }
-    .section-heading {
-        font-size: 14px;
-        font-weight: 700;
-        color: #374151;
-        margin-bottom: 14px;
-        display: block;
-    }
-</style>
-@endpush
-
 @section('content')
+<style>
+    .af-toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; vertical-align: middle; }
+    .af-toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .af-toggle-track { position: absolute; inset: 0; border-radius: 24px; transition: background .3s; }
+    .af-toggle-knob  { position: absolute; height: 18px; width: 18px; bottom: 3px; border-radius: 50%; background: #fff; transition: left .3s; display: block; }
+</style>
 <div class="card" style="max-width:700px;">
     <div class="card-header">
         <span class="card-title">Form Details</span>
@@ -113,43 +54,51 @@
             {{-- Assign Form --}}
             <div class="form-group">
                 <label class="form-label" style="font-weight:700;color:#374151;display:block;margin-bottom:12px;">Assign Form</label>
-                {{-- Inline-styled toggle row so global CSS cannot override --}}
                 <div style="display:flex;align-items:center;gap:40px;flex-wrap:nowrap;margin-bottom:16px;">
 
-                    {{-- Role toggle --}}
+                    {{-- Role toggle (same pattern as user-management) --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">Role</span>
-                        <div id="role_track"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
-                             onclick="assignToggleClick(event,'role')">
-                            <span id="role_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_role_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
-                        </div>
-                        <input type="hidden" name="assign_role_enabled" id="assign_role_hidden" value="{{ old('assign_role_enabled') ? '1' : '0' }}">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">Role</span>
+                        <label class="af-toggle-switch">
+                            <input type="checkbox" id="assign_role_chk" name="assign_role_enabled" value="1"
+                                   {{ old('assign_role_enabled') ? 'checked' : '' }}
+                                   onchange="afToggleChanged('role', this)">
+                            <span class="af-toggle-track" id="role_track"
+                                  style="background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="af-toggle-knob" id="role_knob"
+                                      style="left:{{ old('assign_role_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
 
                     {{-- User toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">User</span>
-                        <div id="user_track"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
-                             onclick="assignToggleClick(event,'user')">
-                            <span id="user_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_user_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
-                        </div>
-                        <input type="hidden" name="assign_user_enabled" id="assign_user_hidden" value="{{ old('assign_user_enabled') ? '1' : '0' }}">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">User</span>
+                        <label class="af-toggle-switch">
+                            <input type="checkbox" id="assign_user_chk" name="assign_user_enabled" value="1"
+                                   {{ old('assign_user_enabled') ? 'checked' : '' }}
+                                   onchange="afToggleChanged('user', this)">
+                            <span class="af-toggle-track" id="user_track"
+                                  style="background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="af-toggle-knob" id="user_knob"
+                                      style="left:{{ old('assign_user_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
 
                     {{-- Public toggle --}}
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:14px;font-weight:500;color:#374151;user-select:none;">Public</span>
-                        <div id="public_track"
-                             style="position:relative;width:44px;height:24px;border-radius:24px;cursor:pointer;background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};flex-shrink:0;pointer-events:all;z-index:10;"
-                             onclick="assignToggleClick(event,'public')">
-                            <span id="public_knob"
-                                  style="position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:{{ old('assign_public_enabled') ? '23px' : '3px' }};display:block;pointer-events:none;"></span>
-                        </div>
-                        <input type="hidden" name="assign_public_enabled" id="assign_public_hidden" value="{{ old('assign_public_enabled') ? '1' : '0' }}">
+                        <span style="font-size:14px;font-weight:500;color:#374151;">Public</span>
+                        <label class="af-toggle-switch">
+                            <input type="checkbox" id="assign_public_chk" name="assign_public_enabled" value="1"
+                                   {{ old('assign_public_enabled') ? 'checked' : '' }}
+                                   onchange="afToggleChanged('public', this)">
+                            <span class="af-toggle-track" id="public_track"
+                                  style="background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="af-toggle-knob" id="public_knob"
+                                      style="left:{{ old('assign_public_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
 
                 </div>
@@ -216,32 +165,21 @@
 </div>
 @endsection
 
-@push('scripts')
 <script>
-    var toggleState = {
-        role:   {{ old('assign_role_enabled') ? 'true' : 'false' }},
-        user:   {{ old('assign_user_enabled') ? 'true' : 'false' }},
-        public: {{ old('assign_public_enabled') ? 'true' : 'false' }}
-    };
-
-    function assignToggleClick(e, type) {
-        e.stopPropagation();
-        // Public is mutually exclusive with Role/User
-        if (type === 'public' && !toggleState['public']) {
-            setToggle('role', false);
-            setToggle('user', false);
-        }
-        setToggle(type, !toggleState[type]);
-    }
-
-    function setToggle(type, on) {
-        toggleState[type] = on;
-        var track  = document.getElementById(type + '_track');
-        var knob   = document.getElementById(type + '_knob');
-        var hidden = document.getElementById(type === 'role' ? 'assign_role_hidden' : (type === 'user' ? 'assign_user_hidden' : 'assign_public_hidden'));
+    function afToggleChanged(type, checkbox) {
+        var on    = checkbox.checked;
+        var track = document.getElementById(type + '_track');
+        var knob  = document.getElementById(type + '_knob');
         track.style.background = on ? '#C8102E' : '#d1d5db';
         knob.style.left        = on ? '23px' : '3px';
-        hidden.value           = on ? '1' : '0';
+
+        // Public is mutually exclusive with Role and User
+        if (type === 'public' && on) {
+            var roleChk = document.getElementById('assign_role_chk');
+            var userChk = document.getElementById('assign_user_chk');
+            if (roleChk.checked) { roleChk.checked = false; afToggleChanged('role', roleChk); }
+            if (userChk.checked) { userChk.checked = false; afToggleChanged('user', userChk); }
+        }
 
         if (type === 'role') {
             document.getElementById('role_field').style.display = on ? '' : 'none';
@@ -253,4 +191,3 @@
         }
     }
 </script>
-@endpush
