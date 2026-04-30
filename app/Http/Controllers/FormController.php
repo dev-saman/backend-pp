@@ -71,22 +71,39 @@ class FormController extends Controller
 
     public function edit(Form $form)
     {
-        return view('forms.edit', compact('form'));
+        $users = \App\Models\User::orderBy('name')->get();
+        return view('forms.edit', compact('form', 'users'));
     }
 
     public function update(Request $request, Form $form)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-
+            'name'             => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'success_msg'      => 'nullable|string',
+            'thanks_msg'       => 'nullable|string',
+            'assign_type'      => 'nullable|string|in:role,user,public,',
+            'assign_role_value'=> 'nullable|string',
+            'assign_user_id'   => 'nullable|integer',
         ]);
 
         if (empty($form->slug)) {
             $form->slug = Str::slug($validated['name']) . '-' . Str::random(6);
         }
 
-        $form->update($validated);
+        $form->name        = $validated['name'];
+        $form->description = $validated['description'] ?? null;
+        $form->success_msg = $validated['success_msg'] ?? null;
+        $form->thanks_msg  = $validated['thanks_msg'] ?? null;
+        $form->assign_type = $validated['assign_type'] ?? null;
+
+        if (($validated['assign_type'] ?? '') === 'user') {
+            $form->assign_user_id = $validated['assign_user_id'] ?? null;
+        } else {
+            $form->assign_user_id = null;
+        }
+
+        $form->save();
 
         return redirect()->route('forms.builder', $form)
             ->with('success', 'Form settings saved.');
