@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_id')->nullable()->constrained('patients')->onDelete('set null');
             $table->foreignId('admin_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('subject');
             $table->text('body');

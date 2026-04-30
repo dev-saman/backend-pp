@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('patient_funnel_assignments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
             $table->foreignId('funnel_id')->constrained('funnels')->onDelete('cascade');
             $table->foreignId('assigned_by')->constrained('users')->onDelete('cascade');
             $table->string('token', 64)->unique();

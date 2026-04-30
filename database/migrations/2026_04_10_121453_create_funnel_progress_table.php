@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('funnel_progress', function (Blueprint $table) {
             $table->id();
             $table->foreignId('assignment_id')->constrained('patient_funnel_assignments')->onDelete('cascade');
-            $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
             $table->foreignId('funnel_id')->constrained('funnels')->onDelete('cascade');
             $table->foreignId('form_id')->constrained('forms')->onDelete('cascade');
             $table->unsignedSmallInteger('step_index')->default(0);

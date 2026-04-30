@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('form_submissions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('form_id')->constrained('forms')->onDelete('cascade');
-            $table->foreignId('patient_id')->nullable()->constrained('patients')->onDelete('set null');
             $table->foreignId('funnel_id')->nullable()->constrained('funnels')->onDelete('set null');
             $table->json('data')->comment('Submitted form data');
             $table->string('ip_address')->nullable();
