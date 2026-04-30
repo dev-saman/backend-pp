@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FunnelController;
@@ -50,9 +49,6 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index']);
-
-    // ---- Patients ----
-    Route::resource('patients', PatientController::class);
 
     // ---- Appointments (read-only, fetched from external system) ----
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
