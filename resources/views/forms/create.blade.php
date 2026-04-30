@@ -27,33 +27,16 @@
         font-weight: 500;
         color: #374151;
     }
-    /* Toggle switch */
-    .toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 24px;
+    /* Toggle switch - same as user-management */
+    .assign-toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
+    .assign-toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .assign-toggle-track {
+        position: absolute; inset: 0; border-radius: 24px; transition: .3s;
     }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: #d1d5db;
-        border-radius: 24px;
-        transition: .3s;
+    .assign-toggle-knob {
+        position: absolute; height: 18px; width: 18px; bottom: 3px;
+        border-radius: 50%; background: #fff; transition: .3s; display: block;
     }
-    .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 18px; width: 18px;
-        left: 3px; bottom: 3px;
-        background-color: white;
-        border-radius: 50%;
-        transition: .3s;
-    }
-    .toggle-switch input:checked + .toggle-slider { background-color: #C8102E; }
-    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
     .section-divider {
         border: none;
         border-top: 1px solid #e5e7eb;
@@ -111,30 +94,45 @@
                 <div class="assign-toggle-row">
                     {{-- Role toggle --}}
                     <div class="assign-toggle-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="assign_role_enabled" id="assign_role_toggle"
-                                   value="1" {{ old('assign_role_enabled') ? 'checked' : '' }}>
-                            <span class="toggle-slider"></span>
-                        </label>
                         <span class="toggle-label">Role</span>
+                        <label class="assign-toggle-switch">
+                            <input type="checkbox" name="assign_role_enabled" id="assign_role_toggle"
+                                   value="1" {{ old('assign_role_enabled') ? 'checked' : '' }}
+                                   onchange="assignToggleChanged('role', this)">
+                            <span class="assign-toggle-track" id="role_track"
+                                style="background:{{ old('assign_role_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="assign-toggle-knob" id="role_knob"
+                                    style="left:{{ old('assign_role_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
                     {{-- User toggle --}}
                     <div class="assign-toggle-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="assign_user_enabled" id="assign_user_toggle"
-                                   value="1" {{ old('assign_user_enabled') ? 'checked' : '' }}>
-                            <span class="toggle-slider"></span>
-                        </label>
                         <span class="toggle-label">User</span>
+                        <label class="assign-toggle-switch">
+                            <input type="checkbox" name="assign_user_enabled" id="assign_user_toggle"
+                                   value="1" {{ old('assign_user_enabled') ? 'checked' : '' }}
+                                   onchange="assignToggleChanged('user', this)">
+                            <span class="assign-toggle-track" id="user_track"
+                                style="background:{{ old('assign_user_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="assign-toggle-knob" id="user_knob"
+                                    style="left:{{ old('assign_user_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
                     {{-- Public toggle --}}
                     <div class="assign-toggle-item">
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="assign_public_enabled" id="assign_public_toggle"
-                                   value="1" {{ old('assign_public_enabled') ? 'checked' : '' }}>
-                            <span class="toggle-slider"></span>
-                        </label>
                         <span class="toggle-label">Public</span>
+                        <label class="assign-toggle-switch">
+                            <input type="checkbox" name="assign_public_enabled" id="assign_public_toggle"
+                                   value="1" {{ old('assign_public_enabled') ? 'checked' : '' }}
+                                   onchange="assignToggleChanged('public', this)">
+                            <span class="assign-toggle-track" id="public_track"
+                                style="background:{{ old('assign_public_enabled') ? '#C8102E' : '#d1d5db' }};">
+                                <span class="assign-toggle-knob" id="public_knob"
+                                    style="left:{{ old('assign_public_enabled') ? '23px' : '3px' }};"></span>
+                            </span>
+                        </label>
                     </div>
                 </div>
 
@@ -202,26 +200,33 @@
 
 @push('scripts')
 <script>
-    // Role toggle
-    document.getElementById('assign_role_toggle').addEventListener('change', function () {
-        document.getElementById('role_field').style.display = this.checked ? '' : 'none';
-        if (!this.checked) document.querySelector('select[name="assign_type"]').value = '';
-    });
-
-    // User toggle
-    document.getElementById('assign_user_toggle').addEventListener('change', function () {
-        document.getElementById('user_field').style.display = this.checked ? '' : 'none';
-        if (!this.checked) document.querySelector('select[name="assign_user_id"]').value = '';
-    });
-
-    // Public toggle — mutually exclusive with Role/User
-    document.getElementById('assign_public_toggle').addEventListener('change', function () {
-        if (this.checked) {
-            document.getElementById('assign_role_toggle').checked = false;
-            document.getElementById('assign_user_toggle').checked = false;
-            document.getElementById('role_field').style.display = 'none';
-            document.getElementById('user_field').style.display = 'none';
+    function assignToggleChanged(type, checkbox) {
+        var track = document.getElementById(type + '_track');
+        var knob  = document.getElementById(type + '_knob');
+        if (checkbox.checked) {
+            track.style.background = '#C8102E';
+            knob.style.left = '23px';
+        } else {
+            track.style.background = '#d1d5db';
+            knob.style.left = '3px';
         }
-    });
+
+        // Show/hide dropdowns
+        if (type === 'role') {
+            document.getElementById('role_field').style.display = checkbox.checked ? '' : 'none';
+            if (!checkbox.checked) document.querySelector('select[name="assign_type"]').value = '';
+        }
+        if (type === 'user') {
+            document.getElementById('user_field').style.display = checkbox.checked ? '' : 'none';
+            if (!checkbox.checked) document.querySelector('select[name="assign_user_id"]').value = '';
+        }
+        // Public is mutually exclusive with Role and User
+        if (type === 'public' && checkbox.checked) {
+            var roleChk = document.getElementById('assign_role_toggle');
+            var userChk = document.getElementById('assign_user_toggle');
+            roleChk.checked = false; assignToggleChanged('role', roleChk);
+            userChk.checked = false; assignToggleChanged('user', userChk);
+        }
+    }
 </script>
 @endpush
