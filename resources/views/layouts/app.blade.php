@@ -234,7 +234,7 @@
             padding: 28px 32px;
         }
 
-        /* ===== ALERTS ===== */
+        /* ===== ALERTS (kept for any legacy use) ===== */
         .alert {
             padding: 12px 16px;
             border-radius: 8px;
@@ -248,6 +248,24 @@
         .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
         .alert-danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
         .alert-warning { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+
+        /* ===== GLOBAL TOAST ===== */
+        #global-toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 99999;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .g-toast {
+            display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+            border-radius: 10px; font-size: 14px; font-weight: 500; color: #fff;
+            min-width: 280px; max-width: 400px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            pointer-events: all; animation: gToastIn .3s ease;
+        }
+        .g-toast.success { background: #16a34a; }
+        .g-toast.error   { background: #dc2626; }
+        .g-toast.warning { background: #d97706; }
+        @keyframes gToastIn  { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes gToastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+        .g-toast.hide { animation: gToastOut .3s ease forwards; }
 
         /* ===== CARDS ===== */
         .card {
@@ -592,36 +610,47 @@
 
     <!-- Page Body -->
     <main class="page-body">
-        @if(!Request::is('user-management*'))
-            @if(session('success'))
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i>
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        @foreach($errors->all() as $error)
-                            <div>{{ $error }}</div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-        @endif
-
         @yield('content')
     </main>
 </div>
+
+{{-- Global toast container --}}
+<div id="global-toast-container"></div>
+
+{{-- Hidden flash data for JS toast --}}
+@if(session('success'))
+<span id="g-flash-success" data-msg="{{ session('success') }}" style="display:none;"></span>
+@endif
+@if(session('error'))
+<span id="g-flash-error" data-msg="{{ session('error') }}" style="display:none;"></span>
+@endif
+@if($errors->any())
+<span id="g-flash-validation" data-msg="{{ implode(' | ', $errors->all()) }}" style="display:none;"></span>
+@endif
+
+<script>
+function showGlobalToast(message, type) {
+    type = type || 'success';
+    var container = document.getElementById('global-toast-container');
+    var toast = document.createElement('div');
+    toast.className = 'g-toast ' + type;
+    var icon = type === 'success' ? 'check-circle' : (type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle');
+    toast.innerHTML = '<i class="fas fa-' + icon + '"></i> ' + message;
+    container.appendChild(toast);
+    setTimeout(function() {
+        toast.classList.add('hide');
+        setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+    }, 4500);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var s = document.getElementById('g-flash-success');
+    var e = document.getElementById('g-flash-error');
+    var v = document.getElementById('g-flash-validation');
+    if (s) showGlobalToast(s.getAttribute('data-msg'), 'success');
+    if (e) showGlobalToast(e.getAttribute('data-msg'), 'error');
+    if (v) showGlobalToast(v.getAttribute('data-msg'), 'error');
+});
+</script>
 
 </body>
 </html>
