@@ -527,9 +527,6 @@
         </a>
 
         <div class="nav-section-label">Patients</div>
-        <a href="{{ route('patients.index') }}" class="nav-item {{ request()->routeIs('patients.*') ? 'active' : '' }}">
-            <i class="fas fa-users"></i> Patients
-        </a>
         <a href="{{ route('appointments.index') }}" class="nav-item {{ request()->routeIs('appointments.*') ? 'active' : '' }}">
             <i class="fas fa-calendar-check"></i> Appointments
         </a>
