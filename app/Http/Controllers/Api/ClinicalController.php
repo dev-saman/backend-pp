@@ -23,6 +23,16 @@ class ClinicalController extends Controller
                 ->asJson()
                 ->post($url, []);
 
+            $data = $response->json();
+
+foreach ($data as &$item) {
+    if (isset($item['decoded_json'][0]) && is_array($item['decoded_json'][0])) {
+        $item['decoded_json'] = $item['decoded_json'][0];
+    }
+}
+
+            
+
             if ($response->failed()) {
                 return response()->json([
                     'success' => false,
@@ -33,7 +43,7 @@ class ClinicalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $response->json()
+                'data' => $data
             ], 200);
 
         } catch (\Throwable $e) {
