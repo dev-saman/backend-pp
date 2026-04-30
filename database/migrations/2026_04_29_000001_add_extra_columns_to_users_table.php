@@ -19,6 +19,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            $table->unsignedBigInteger('patient_id')->nullable()->after('id');
             $table->string('avatar')->default('uploads/avatar/avatar.png')->after('remember_token');
             $table->string('address')->nullable()->after('avatar');
             $table->string('country')->nullable()->after('address');
