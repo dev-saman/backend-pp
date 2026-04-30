@@ -127,8 +127,8 @@
                     <td style="text-align:center;">
                         <span class="status-toggle-wrap"
                               onclick="toggleFormStatus({{ $form->id }}, this)"
-                              title="{{ $form->status === 'active' ? 'Active — click to set Draft' : 'Draft — click to set Active' }}">
-                            <span class="status-toggle-track {{ $form->status === 'active' ? 'active' : '' }}">
+                              title="{{ $form->is_active ? 'Active — click to deactivate' : 'Inactive — click to activate' }}">
+                            <span class="status-toggle-track {{ $form->is_active ? 'active' : '' }}">
                                 <span class="status-toggle-knob"></span>
                             </span>
                         </span>
@@ -214,11 +214,11 @@ document.addEventListener('keydown', function(e) {
 // ── Status Toggle ─────────────────────────────────────────────
 function toggleFormStatus(formId, wrapEl) {
     var track = wrapEl.querySelector('.status-toggle-track');
-    var isActive = track.classList.contains('active');
+    var wasActive = track.classList.contains('active');
 
     // Optimistic UI update
     track.classList.toggle('active');
-    wrapEl.title = isActive ? 'Draft — click to set Active' : 'Active — click to set Draft';
+    wrapEl.title = wasActive ? 'Inactive — click to activate' : 'Active — click to deactivate';
 
     fetch('/forms/' + formId + '/toggle-status', {
         method: 'POST',
@@ -231,17 +231,17 @@ function toggleFormStatus(formId, wrapEl) {
     .then(function(r) { return r.json(); })
     .then(function(res) {
         if (res.status === 'success') {
-            showGlobalToast('Status updated to ' + res.new_status + '.', 'success');
+            showGlobalToast(res.message, 'success');
         } else {
             // Revert on failure
             track.classList.toggle('active');
-            wrapEl.title = isActive ? 'Active — click to set Draft' : 'Draft — click to set Active';
+            wrapEl.title = wasActive ? 'Active — click to deactivate' : 'Inactive — click to activate';
             showGlobalToast('Failed to update status.', 'error');
         }
     })
     .catch(function() {
         track.classList.toggle('active');
-        wrapEl.title = isActive ? 'Active — click to set Draft' : 'Draft — click to set Active';
+        wrapEl.title = wasActive ? 'Active — click to deactivate' : 'Inactive — click to activate';
         showGlobalToast('Failed to update status.', 'error');
     });
 }

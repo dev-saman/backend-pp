@@ -191,13 +191,13 @@ class FormController extends Controller
      */
     public function toggleStatus(Form $form)
     {
-        $form->status = ($form->status === 'active') ? 'draft' : 'active';
+        $form->is_active = $form->is_active ? 0 : 1;
         $form->save();
 
         return response()->json([
             'status'     => 'success',
-            'new_status' => $form->status,
-            'message'    => 'Form status updated to ' . $form->status . '.',
+            'is_active'  => $form->is_active,
+            'message'    => 'Form ' . ($form->is_active ? 'activated' : 'deactivated') . ' successfully.',
         ]);
     }
 
