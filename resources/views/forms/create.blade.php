@@ -15,7 +15,7 @@
         align-items: center;
         gap: 36px;
         margin-bottom: 16px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .assign-toggle-item {
         display: flex;
@@ -91,8 +91,6 @@
                           placeholder="Describe what this form is for...">{{ old('description') }}</textarea>
             </div>
 
-            <hr class="section-divider">
-
             {{-- Success Message --}}
             <div class="form-group">
                 <label class="form-label">Success Message</label>
@@ -106,8 +104,6 @@
                 <textarea name="thanks_msg" class="form-control" rows="3"
                           placeholder="Message shown on the thank-you page...">{{ old('thanks_msg') }}</textarea>
             </div>
-
-            <hr class="section-divider">
 
             {{-- Assign Form --}}
             <div class="form-group">
@@ -170,8 +166,6 @@
                     </div>
                 </div>
             </div>
-
-            <hr class="section-divider">
 
             {{-- Category & Status --}}
             <div class="form-grid">
