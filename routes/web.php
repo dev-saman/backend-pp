@@ -9,7 +9,6 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FunnelController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\MessageController;
-use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AnalyticsController;
 
 // ============================================================
@@ -23,13 +22,6 @@ Route::post('/f/{slug}/submit', [FormController::class, 'submitPublicForm'])->na
 // Public funnel (not assigned to a patient)
 Route::get('/funnel/{slug}', [FunnelController::class, 'publicFunnel'])->name('funnels.public');
 Route::post('/funnel/{slug}/submit', [FunnelController::class, 'submitPublicFunnel'])->name('funnels.submit');
-
-// Patient-specific funnel link (assigned, tracks progress per patient)
-// URL: /fill/{token}
-Route::get('/fill/{token}', [AssignmentController::class, 'fillFunnel'])->name('assignments.fill');
-Route::post('/fill/{token}/save', [AssignmentController::class, 'autoSave'])->name('assignments.autosave');
-Route::post('/fill/{token}/submit-step', [AssignmentController::class, 'submitStep'])->name('assignments.submit-step');
-Route::post('/fill/{token}/complete', [AssignmentController::class, 'complete'])->name('assignments.complete');
 
 // ============================================================
 // AUTH ROUTES
@@ -69,23 +61,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/funnels/{funnel}/schema', [FunnelController::class, 'saveSchema'])->name('funnels.schema');
     Route::post('/funnels/{funnel}/publish', [FunnelController::class, 'publish'])->name('funnels.publish');
 
-    // ---- Assignments (assign funnel to patient) ----
-    Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
-    Route::post('/assignments', [AssignmentController::class, 'store'])->name('assignments.store');
-    Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
-    Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
-    // Resend link to patient
-    Route::post('/assignments/{assignment}/resend', [AssignmentController::class, 'resend'])->name('assignments.resend');
-
-    // ---- Progress Tracking (redirects to Assignments — merged) ----
-    Route::get('/progress', function() { return redirect()->route('assignments.index'); })->name('progress.index');
-    Route::get('/progress/patient/{patient}', [AssignmentController::class, 'patientProgress'])->name('progress.patient');
-    Route::get('/progress/funnel/{funnel}', [AssignmentController::class, 'funnelProgress'])->name('progress.funnel');
-
     // ---- Analytics & Reports ----
     Route::get('/analytics/funnels', [AnalyticsController::class, 'funnels'])->name('analytics.funnels');
     Route::get('/analytics/forms', [AnalyticsController::class, 'forms'])->name('analytics.forms');
     Route::get('/analytics/reports', [AnalyticsController::class, 'reports'])->name('analytics.reports');
+
     // ---- User Management ----
     Route::get('/user-management', [\App\Http\Controllers\UserManagementController::class, 'index'])->name('user-management.index');
     Route::post('/user-management', [\App\Http\Controllers\UserManagementController::class, 'store'])->name('user-management.store');
@@ -93,7 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/user-management/{user}', [\App\Http\Controllers\UserManagementController::class, 'destroy'])->name('user-management.destroy');
     Route::post('/user-management/{user}/toggle-status', [\App\Http\Controllers\UserManagementController::class, 'toggleStatus'])->name('user-management.toggle-status');
 
-    // ---- Patients (read-only, fetched from external system) ----
+    // ---- Billing ----
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
     Route::get('/billing/{id}', [BillingController::class, 'show'])->name('billing.show');
 

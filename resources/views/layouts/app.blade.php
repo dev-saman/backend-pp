@@ -547,9 +547,6 @@
         <a href="{{ route('funnels.index') }}" class="nav-item {{ request()->routeIs('funnels.*') ? 'active' : '' }}">
             <i class="fas fa-filter"></i> Funnels
         </a>
-        <a href="{{ route('assignments.index') }}" class="nav-item {{ request()->routeIs('assignments.*') ? 'active' : '' }}">
-            <i class="fas fa-tasks"></i> Assignments
-        </a>
         <div class="nav-section-title">ANALYTICS</div>
         <a href="{{ route('analytics.reports') }}" class="nav-item {{ request()->is('analytics/reports') ? 'active' : '' }}">
             <i class="fas fa-chart-bar"></i> Reports Overview
